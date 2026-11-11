@@ -61,7 +61,7 @@ Assets/
 ### Assets/Scripts/Features
 
 - **A · Networking** — `RelaySessionConnector`는 연결 생성·참가·종료, `NetworkPlayerSpawner`는 플레이어 생성·제거, `MatchStateReplicator`는 공개 경기 상태 송수신을 각각 담당함.
-- **A · Movement** — `RigidbodyMovement`는 본인 입력에 따른 이동과 스턴·탈락 시 이동 제한을 담당함. 플레이어 위치 동기화는 NGO의 소유자 권한 컴포넌트를 재사용함.
+- **A · Movement** — `RigidbodyMovement`가 소유자 입력을 이동에 적용하고, `PlayerMovementBlocker`가 플레이어 사이의 힘 전달을 막고 진행 방향을 제한함. `OwnerNetworkTransform`이 위치를 동기화함.
 - **A · Contacts** — `PlayerContactCollector`는 호스트가 받은 위치로 새 접촉과 접촉 해제를 수집함. 전달·탈락 여부는 규칙의 판정 결과로 받음.
 - **B · Rules** — `BombTransferRule`, `BombExplosionRule`, `PlayerStunRule`, `RankingRule`로 전달, 폭발, 스턴, 순위·우승 확정을 나눔. 현재 상태와 틱·접촉 정보를 입력받아 판정 결과를 반환함.
 - **B · Views** — `LobbyView`, `SurvivalHudView`, `SpectatorView`, `ResultView`가 각 화면을 표시함. 동일한 상태 형식으로 테스트 데이터와 실제 네트워크 데이터를 표시함.
@@ -107,5 +107,7 @@ flowchart LR
 - **물리 틱** · A가 이번 틱에 새로 닿은 플레이어 쌍을 모음. B의 규칙은 접촉이 없는 틱에도 실행돼 폭발 여부를 확인함. 같은 틱의 접촉과 만료가 겹치면 폭발을 우선하는 첫 빌드 합의안을 적용함.
 - **화면 갱신** · 게스트는 원격 큐브 위치를 보간하고, 각자의 HUD에 확정된 보유자와 생존·순위를 표시함. 숨은 폭발 시각은 호스트가 관리함. B는 HUD에 테스트용 경기 상태를 공급해 접속 구현 전에 관전·결과 전환을 확인할 수 있음.
 - **이동 제한** · 클라이언트는 호스트가 확정한 스턴·탈락 상태를 자기 이동 코드에 적용함.
+
+현재 이동 틀은 호스트의 중복 없는 무작위 스폰으로 시작함. `PlayerCollisionManager`가 호스트의 마지막 안전 위치에서 수신 위치까지 검사하고, 첫 접촉 이전 위치를 소유자에게 전달함. `PlayerPositionCorrection`이 물리 틱에서 위치와 접촉면 안쪽 속도 성분을 보정함.
 
 [A 작업지침서](./multiplayer-work-guide-a.md) · [B 작업지침서](./multiplayer-work-guide-b.md) · [GitHub Mermaid 문서](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams)

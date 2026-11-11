@@ -17,6 +17,9 @@ GameObject:
   - component: {fileID: 6132793958897699671}
   - component: {fileID: 8279724466546898558}
   - component: {fileID: 3364518895872730000}
+  - component: {fileID: 3310413163118715067}
+  - component: {fileID: 1678051912722194157}
+  - component: {fileID: 5096880100800037670}
   m_Layer: 0
   m_Name: CubePlayer
   m_TagString: Untagged
@@ -246,4 +249,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f88f650d23bd4141a92bc5f1134a056, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.NetworkPlayerReadiness
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &3310413163118715067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 418436872ad3e4949b533032a4954b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.PlayerMovementBlocker
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &1678051912722194157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b1a4965d66e11a4d93510491cb70d76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.RigidbodyMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &5096880100800037670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7e5785e21034e46812827f3cdd451c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.PlayerPositionCorrection
   ShowTopMostFoldoutHeaderGroup: 1

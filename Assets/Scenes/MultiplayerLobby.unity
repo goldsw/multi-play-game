@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 153075894}
   - component: {fileID: 153075893}
   - component: {fileID: 153075899}
+  - component: {fileID: 153075900}
   m_Layer: 0
   m_Name: LobbyComposition
   m_TagString: Untagged
@@ -254,6 +255,20 @@ MonoBehaviour:
   - {fileID: 1197781730}
   - {fileID: 2070159970}
   - {fileID: 234879181}
+--- !u!114 &153075900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 153075892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22296e55a26402043897cd0f8a107ba6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.PlayerCollisionManager
+  networkManager: {fileID: 190023704}
+  lobbyState: {fileID: 223195204}
 --- !u!1 &190023703
 GameObject:
   m_ObjectHideFlags: 0

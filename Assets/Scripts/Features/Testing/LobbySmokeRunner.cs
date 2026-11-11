@@ -117,6 +117,8 @@ namespace MushroomSurvival
                 succeeded = true;
                 quitAt = Time.realtimeSinceStartup + 8f;
                 Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; phase=Playing; owner={network.LocalClientId}");
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-move") >= 0)
+                    gameObject.AddComponent<MovementSmokeProbe>().Initialize(network);
             }
             if (succeeded && Time.realtimeSinceStartup >= quitAt)
                 Application.Quit(0);

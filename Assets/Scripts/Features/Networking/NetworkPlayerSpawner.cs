@@ -25,6 +25,7 @@ namespace MushroomSurvival
                 throw new InvalidOperationException("The player prefab and a spawn point for each participant are required.");
 
             var spawned = new List<NetworkObject>();
+            var availablePoints = new List<Transform>(spawnPoints);
             try
             {
                 for (var slot = 0; slot < participants.Count; slot++)
@@ -32,7 +33,9 @@ namespace MushroomSurvival
                     var clientId = participants[slot];
                     if (manager.ConnectedClients[clientId].PlayerObject != null)
                         throw new InvalidOperationException("This player is already spawned.");
-                    var point = spawnPoints[slot];
+                    int pointIndex = UnityEngine.Random.Range(0, availablePoints.Count);
+                    var point = availablePoints[pointIndex];
+                    availablePoints.RemoveAt(pointIndex);
                     var player = Instantiate(playerPrefab, point.position, point.rotation);
                     spawned.Add(player);
                     player.SpawnAsPlayerObject(clientId);

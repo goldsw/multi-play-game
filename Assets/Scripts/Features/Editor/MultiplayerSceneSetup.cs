@@ -6,6 +6,7 @@ using Unity.Netcode.Transports.UTP;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace MushroomSurvival.Editor
@@ -27,6 +28,16 @@ namespace MushroomSurvival.Editor
             AssetDatabase.Refresh();
             if (File.Exists(ScenePath))
             {
+                var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
+                try
+                {
+                    ConfigurePlayerMovement(contents);
+                    PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath);
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(contents);
+                }
                 var cachedPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
                 cachedPrefab.GetComponent<Renderer>().sharedMaterial =
                     GetMaterial(CubeMaterialPath, new Color(0.15f, 0.6f, 0.9f));
@@ -47,6 +58,7 @@ namespace MushroomSurvival.Editor
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Clear();
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(cachedRegistry);
                 ConfigureLobbyPreview(loadedScene);
+                ConfigurePlayerCollisions(loadedScene, sceneNetwork);
                 EditorUtility.SetDirty(sceneNetwork);
                 EditorSceneManager.SaveScene(loadedScene);
                 if (!wasLoaded)
@@ -68,6 +80,7 @@ namespace MushroomSurvival.Editor
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             cube.AddComponent<NetworkRigidbody>();
             cube.AddComponent<NetworkPlayerReadiness>();
+            ConfigurePlayerMovement(cube);
             var playerPrefab = PrefabUtility.SaveAsPrefabAsset(cube, PrefabPath);
             Object.DestroyImmediate(cube);
             var prefabs = GetPrefabRegistry(playerPrefab);
@@ -138,6 +151,7 @@ namespace MushroomSurvival.Editor
             spawner.Configure(playerPrefab.GetComponent<NetworkObject>(), points);
             roots.AddComponent<LobbyBootstrap>().Configure(network, state, spawner, manager, presenter, view);
             ConfigureLobbyPreview(scene);
+            ConfigurePlayerCollisions(scene, network);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             var existingScenes = EditorBuildSettings.scenes.Where(item => item.path != ScenePath);
@@ -173,6 +187,32 @@ namespace MushroomSurvival.Editor
             wall.transform.localScale = scale;
             wall.GetComponent<Renderer>().sharedMaterial =
                 GetMaterial(ArenaMaterialPath, new Color(0.55f, 0.6f, 0.55f));
+        }
+
+        private static void ConfigurePlayerMovement(GameObject player)
+        {
+            var input = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+            if (input == null)
+                throw new System.InvalidOperationException("The player input actions asset is missing.");
+            var movement = player.GetComponent<RigidbodyMovement>();
+            if (movement == null)
+                movement = player.AddComponent<RigidbodyMovement>();
+            movement.Configure(input);
+            if (!player.TryGetComponent<PlayerPositionCorrection>(out _))
+                player.AddComponent<PlayerPositionCorrection>();
+        }
+
+        private static void ConfigurePlayerCollisions(Scene scene, NetworkManager network)
+        {
+            var roots = scene.GetRootGameObjects();
+            var bootstrap = roots.Select(root => root.GetComponent<LobbyBootstrap>())
+                .Single(component => component != null);
+            var lobby = roots.Select(root => root.GetComponent<LobbyNetworkState>())
+                .Single(component => component != null);
+            var manager = bootstrap.GetComponent<PlayerCollisionManager>();
+            if (manager == null)
+                manager = bootstrap.gameObject.AddComponent<PlayerCollisionManager>();
+            manager.Configure(network, lobby);
         }
 
         private static void ConfigureLobbyPreview(Scene scene)
