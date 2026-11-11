@@ -10,6 +10,8 @@ namespace MushroomSurvival
         private SessionManager session;
         private NetworkManager network;
         private bool host;
+        private string joinCode;
+        private int expectedPlayers;
         private bool succeeded;
         private float deadline;
         private float quitAt;
@@ -26,12 +28,19 @@ namespace MushroomSurvival
             return isHost || useRelay || Array.IndexOf(arguments, "--smoke-client") >= 0;
         }
 
-        public async void Initialize(
+        public void Initialize(
             SessionManager manager, NetworkManager networkManager, bool isHost, string joinCode)
         {
             session = manager;
             network = networkManager;
             host = isHost;
+            this.joinCode = joinCode;
+            expectedPlayers = Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-solo") >= 0
+                ? 1 : LobbySettings.PlayerCount;
+        }
+
+        private async void Start()
+        {
             deadline = Time.realtimeSinceStartup + 90f;
             try
             {
@@ -56,17 +65,17 @@ namespace MushroomSurvival
             if (session == null)
                 return;
             if (host && session.State.Status == SessionStatus.Lobby &&
-                session.State.PlayerCount == LobbySettings.PlayerCount)
+                session.State.PlayerCount == expectedPlayers)
                 session.StartMatch();
 
             if (!succeeded && session.State.Status == SessionStatus.Playing &&
+                session.State.PlayerCount == expectedPlayers &&
                 network.LocalClient.PlayerObject != null &&
-                network.SpawnManager.SpawnedObjectsList.Count >= LobbySettings.PlayerCount + 1)
+                network.SpawnManager.SpawnedObjectsList.Count >= expectedPlayers + 1)
             {
                 succeeded = true;
                 quitAt = Time.realtimeSinceStartup + 8f;
-                Debug.Log("MUSHROOM_SMOKE_PASSED Four cube players spawned; phase=Playing; owner=" +
-                    network.LocalClientId);
+                Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; phase=Playing; owner={network.LocalClientId}");
             }
             if (succeeded && Time.realtimeSinceStartup >= quitAt)
                 Application.Quit(0);

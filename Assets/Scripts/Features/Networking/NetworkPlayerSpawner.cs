@@ -16,19 +16,20 @@ namespace MushroomSurvival
             spawnPoints = positions;
         }
 
-        public void SpawnPlayers(NetworkManager manager)
+        public void SpawnPlayers(NetworkManager manager, IReadOnlyList<ulong> participants)
         {
-            if (!manager.IsServer || manager.ConnectedClientsIds.Count != LobbySettings.PlayerCount)
-                throw new InvalidOperationException("Four connected players are required.");
-            if (playerPrefab == null || spawnPoints.Length < LobbySettings.PlayerCount)
-                throw new InvalidOperationException("Player prefab and four spawn points are required.");
+            if (!manager.IsServer || participants.Count < LobbySettings.MinimumPlayersToStart ||
+                participants.Count > LobbySettings.PlayerCount)
+                throw new InvalidOperationException("The participant count is outside the lobby limits.");
+            if (playerPrefab == null || spawnPoints == null || spawnPoints.Length < participants.Count)
+                throw new InvalidOperationException("The player prefab and a spawn point for each participant are required.");
 
             var spawned = new List<NetworkObject>();
             try
             {
-                for (var slot = 0; slot < manager.ConnectedClientsIds.Count; slot++)
+                for (var slot = 0; slot < participants.Count; slot++)
                 {
-                    var clientId = manager.ConnectedClientsIds[slot];
+                    var clientId = participants[slot];
                     if (manager.ConnectedClients[clientId].PlayerObject != null)
                         throw new InvalidOperationException("This player is already spawned.");
                     var point = spawnPoints[slot];
@@ -50,13 +51,13 @@ namespace MushroomSurvival
             }
         }
 
-        public bool AllPlayersReady(NetworkManager manager)
+        public bool AllPlayersReady(NetworkManager manager, IReadOnlyList<ulong> participants)
         {
-            if (!manager.IsServer || manager.ConnectedClients.Count != LobbySettings.PlayerCount)
+            if (!manager.IsServer || participants.Count == 0)
                 return false;
-            foreach (var client in manager.ConnectedClients.Values)
+            foreach (var clientId in participants)
             {
-                if (client.PlayerObject == null ||
+                if (!manager.ConnectedClients.TryGetValue(clientId, out var client) || client.PlayerObject == null ||
                     !client.PlayerObject.GetComponent<NetworkPlayerReadiness>().IsReady)
                     return false;
             }

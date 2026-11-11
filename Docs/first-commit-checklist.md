@@ -5,9 +5,9 @@
 ## 실행
 
 1. Unity에서 [MultiplayerLobby 씬](../Assets/Scenes/MultiplayerLobby.unity)을 열고 Play 실행함.
-2. 한 명이 Create Room을 눌러 참가 코드를 확인함.
-3. 나머지 세 명이 코드를 입력하고 Join을 누름. 테스트 기기마다 서로 다른 익명 사용자로 참가함.
-4. 호스트가 4명 접속 후 Start Match를 누름. 큐브 네 개가 각 스폰 위치에 생성되고, 각 소유자가 생성 확인을 보내면 Playing으로 전환됨.
+2. 방장이 Create lobby를 눌러 참가 코드를 확인함.
+3. 여러 명이 테스트할 때는 게스트가 코드를 입력하고 Join lobby를 누름. 테스트 기기마다 서로 다른 익명 사용자로 참가함.
+4. Unity 에디터와 Development Build에서는 방장 혼자 Start match를 눌러 테스트할 수 있음. 일반 빌드는 4명 접속이 필요함. 시작한 인원만큼 큐브가 생성되고, 각 소유자가 생성 확인을 보내면 Playing으로 전환됨.
 5. Leave로 방을 나가면 네트워크 종료 완료 뒤 메인 로비로 돌아옴.
 
 빌드의 첫 씬으로 등록됨. 씬·프리팹 등록은 Unity 메뉴 Tools → Mushroom Survival → Create Multiplayer Lobby에서 확인할 수 있음.
@@ -32,7 +32,7 @@
 - 실제 Cloud 연결 정보는 정상 확인함. 작업 중 미연결로 안내했던 것은 잘못된 판정이었음.
 - 별도 PC와 지연·패킷 손실 환경에서의 검증은 다음 통합 검증 항목임.
 
-개발 빌드에만 포함되는 테스트 드라이버는 `--smoke-relay-host`, `--smoke-relay-client CODE` 인자로 실행 가능함. 각 프로세스가 임시 인증 프로필을 사용해 같은 PC에서도 별도 참가자로 동작함. 로컬 전송 검증에는 `--smoke-host`, `--smoke-client` 인자를 사용함.
+개발 빌드에만 포함되는 테스트 드라이버는 `--smoke-relay-host`, `--smoke-relay-client CODE` 인자로 실행 가능함. 각 프로세스가 임시 인증 프로필을 사용해 같은 PC에서도 별도 참가자로 동작함. 로컬 전송 검증에는 `--smoke-host`, `--smoke-client` 인자를 사용함. 방장 단독 검증은 호스트 인자에 `--smoke-solo`를 추가함.
 
 검증 로그와 개발 빌드는 워크스페이스의 `.verify/`에 있음. 최종 빌드 로그는 `build-final.log`, 접속 로그는 `relay-final-host.log`와 `relay-final-client-1.log`부터 `relay-final-client-3.log`임.
 

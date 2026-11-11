@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace MushroomSurvival
         private bool busy;
         private bool destroyed;
         private string joinCode = "";
+        private ulong[] matchParticipants = Array.Empty<ulong>();
         private float startDeadline;
 
         public SessionData State { get; private set; } = new(SessionStatus.Offline);
@@ -96,13 +98,14 @@ namespace MushroomSurvival
         {
             if (busy || !networkManager.IsHost || !networkState.IsSpawned ||
                 networkState.Status != SessionStatus.Lobby ||
-                networkState.PlayerCount != LobbySettings.PlayerCount)
+                networkManager.ConnectedClientsIds.Count < LobbySettings.MinimumPlayersToStart)
                 return;
-            networkState.Publish(LobbySettings.PlayerCount, SessionStatus.Starting);
+            matchParticipants = networkManager.ConnectedClientsIds.ToArray();
+            networkState.Publish(matchParticipants.Length, SessionStatus.Starting);
             startDeadline = Time.realtimeSinceStartup + 15f;
             try
             {
-                playerSpawner.SpawnPlayers(networkManager);
+                playerSpawner.SpawnPlayers(networkManager, matchParticipants);
             }
             catch (Exception exception)
             {
@@ -115,8 +118,8 @@ namespace MushroomSurvival
             if (networkManager == null || !networkManager.IsHost || !networkState.IsSpawned ||
                 networkState.Status != SessionStatus.Starting)
                 return;
-            if (playerSpawner.AllPlayersReady(networkManager))
-                networkState.Publish(LobbySettings.PlayerCount, SessionStatus.Playing);
+            if (playerSpawner.AllPlayersReady(networkManager, matchParticipants))
+                networkState.Publish(matchParticipants.Length, SessionStatus.Playing);
             else if (Time.realtimeSinceStartup >= startDeadline)
                 FailSession("Player spawning timed out.");
         }
@@ -124,7 +127,12 @@ namespace MushroomSurvival
         private void OnClientConnected(ulong clientId)
         {
             if (networkManager.IsHost && networkState.IsSpawned)
-                networkState.Publish(networkManager.ConnectedClientsIds.Count, networkState.Status);
+            {
+                if (networkState.Status == SessionStatus.Lobby)
+                    networkState.Publish(networkManager.ConnectedClientsIds.Count, SessionStatus.Lobby);
+                else if (Array.IndexOf(matchParticipants, clientId) < 0)
+                    networkManager.DisconnectClient(clientId);
+            }
             RefreshState();
         }
 
@@ -138,7 +146,10 @@ namespace MushroomSurvival
                 return;
             }
             if (networkState.Status == SessionStatus.Starting || networkState.Status == SessionStatus.Playing)
-                FailSession("A player left. The session has ended.");
+            {
+                if (Array.IndexOf(matchParticipants, clientId) >= 0)
+                    FailSession("A player left. The session has ended.");
+            }
             else if (networkState.IsSpawned)
                 networkState.Publish(networkManager.ConnectedClientsIds.Count, SessionStatus.Lobby);
         }
@@ -174,6 +185,7 @@ namespace MushroomSurvival
                 while (!destroyed && networkManager != null && networkManager.ShutdownInProgress)
                     await Task.Yield();
                 joinCode = "";
+                matchParticipants = Array.Empty<ulong>();
             }
         }
 

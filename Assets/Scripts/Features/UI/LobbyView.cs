@@ -43,7 +43,7 @@ namespace MushroomSurvival
                 GUILayout.BeginArea(panel, GUI.skin.box);
                 GUILayout.Space(12);
                 GUILayout.Label(playing ? "MATCH STARTED" : "MUSHROOM SURVIVAL", titleStyle);
-                GUILayout.Label("Players: " + state.PlayerCount + " / 4", textStyle);
+                GUILayout.Label("Players: " + state.PlayerCount + " / " + LobbySettings.PlayerCount, textStyle);
                 GUILayout.Label("Status: " + state.Status, textStyle);
 
                 if (!string.IsNullOrEmpty(state.Message))
@@ -54,7 +54,6 @@ namespace MushroomSurvival
                 GUI.enabled = previousEnabled && !busy;
                 if (playing)
                 {
-                    GUILayout.Label("Four cubes connected. Start phase ready.", textStyle);
                     if (GUILayout.Button("Leave match", buttonStyle))
                         LeaveRequested?.Invoke();
                 }
@@ -81,8 +80,11 @@ namespace MushroomSurvival
                 GUILayout.Label(state.LocalIsHost ? "You are the host." : "Waiting for the host.", textStyle);
                 bool previousEnabled = GUI.enabled;
                 GUI.enabled = previousEnabled && state.LocalIsHost &&
-                    state.Status == SessionStatus.Lobby && state.PlayerCount == 4;
-                if (GUILayout.Button("Start match (4 players required)", buttonStyle))
+                    state.Status == SessionStatus.Lobby && state.PlayerCount >= LobbySettings.MinimumPlayersToStart;
+                var startLabel = LobbySettings.MinimumPlayersToStart == 1
+                    ? "Start match (solo test enabled)"
+                    : $"Start match ({LobbySettings.MinimumPlayersToStart} players required)";
+                if (GUILayout.Button(startLabel, buttonStyle))
                     StartRequested?.Invoke();
                 GUI.enabled = previousEnabled;
                 if (GUILayout.Button("Leave lobby", buttonStyle))
@@ -101,7 +103,7 @@ namespace MushroomSurvival
                 JoinRequested?.Invoke(joinCode);
             GUI.enabled = enabled;
             GUILayout.Space(12);
-            GUILayout.Label("Create a lobby and share its code with three players.", textStyle);
+            GUILayout.Label($"Share the lobby code with up to {LobbySettings.PlayerCount - 1} players.", textStyle);
         }
 
         private void EnsureStyles()
