@@ -8,32 +8,40 @@ namespace MushroomSurvival
     {
         private SessionManager manager;
         private LobbyView view;
+        private LobbyPreviewView preview;
         private bool destroyed;
 
-        public void Initialize(SessionManager sessionManager, LobbyView lobbyView)
+        public void Initialize(SessionManager sessionManager, LobbyView lobbyView, LobbyPreviewView lobbyPreview)
         {
             if (sessionManager == null)
                 throw new ArgumentNullException(nameof(sessionManager));
             if (lobbyView == null)
                 throw new ArgumentNullException(nameof(lobbyView));
+            if (lobbyPreview == null)
+                throw new ArgumentNullException(nameof(lobbyPreview));
             if (destroyed)
                 return;
 
             Unsubscribe();
             manager = sessionManager;
             view = lobbyView;
+            preview = lobbyPreview;
             manager.StateChanged += OnStateChanged;
             view.HostRequested += OnHostRequested;
             view.JoinRequested += OnJoinRequested;
             view.LeaveRequested += OnLeaveRequested;
             view.StartRequested += OnStartRequested;
-            view.Show(manager.State);
+            OnStateChanged(manager.State);
         }
 
         private void OnStateChanged(SessionData state)
         {
-            if (!destroyed && view != null)
+            if (destroyed)
+                return;
+            if (view != null)
                 view.Show(state);
+            if (preview != null)
+                preview.Show(state);
         }
 
         private void OnHostRequested() => RunRequest(() => manager.HostAsync());
@@ -88,6 +96,7 @@ namespace MushroomSurvival
             }
             manager = null;
             view = null;
+            preview = null;
         }
     }
 }

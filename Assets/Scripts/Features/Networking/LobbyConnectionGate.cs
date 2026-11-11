@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,38 +5,28 @@ namespace MushroomSurvival
 {
     public sealed class LobbyConnectionGate : MonoBehaviour
     {
-        private readonly HashSet<ulong> admittedClients = new();
         private NetworkManager network;
         private LobbyNetworkState state;
+        private SlotManager slotManager;
 
-        public void Initialize(NetworkManager manager, LobbyNetworkState lobbyState)
+        public void Initialize(NetworkManager manager, LobbyNetworkState lobbyState, SlotManager slots)
         {
             network = manager;
             state = lobbyState;
+            slotManager = slots;
             network.ConnectionApprovalCallback += Approve;
-            network.OnClientDisconnectCallback += Release;
         }
 
         private void Approve(
             NetworkManager.ConnectionApprovalRequest request,
             NetworkManager.ConnectionApprovalResponse response)
         {
-            var canJoin = admittedClients.Count < LobbySettings.PlayerCount &&
-                (!state.IsSpawned || state.Status == SessionStatus.Lobby);
+            var canJoin = (!state.IsSpawned || state.Status == SessionStatus.Lobby) &&
+                slotManager.TryReserveSlot(request.ClientNetworkId, out _);
             response.Approved = canJoin;
             response.CreatePlayerObject = false;
             response.Pending = false;
             response.Reason = canJoin ? "" : "The session is full or the match has already started.";
-            if (canJoin)
-                admittedClients.Add(request.ClientNetworkId);
-        }
-
-        private void Release(ulong clientId) => admittedClients.Remove(clientId);
-
-        private void Update()
-        {
-            if (network != null && !network.IsListening)
-                admittedClients.Clear();
         }
 
         private void OnDestroy()
@@ -45,7 +34,6 @@ namespace MushroomSurvival
             if (network == null)
                 return;
             network.ConnectionApprovalCallback -= Approve;
-            network.OnClientDisconnectCallback -= Release;
         }
     }
 }

@@ -1,5 +1,6 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -50,6 +51,8 @@ namespace MushroomSurvival
                     if (session.State.Status == SessionStatus.Lobby)
                         Debug.Log("MUSHROOM_JOIN_CODE " + session.State.JoinCode);
                 }
+                else if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-room-switch") >= 0)
+                    await VerifyRoomSwitchAsync();
                 else
                     await session.JoinAsync(joinCode);
             }
@@ -58,6 +61,44 @@ namespace MushroomSurvival
                 Debug.LogError("MUSHROOM_SMOKE_FAILED " + exception.Message);
                 Application.Quit(1);
             }
+        }
+
+        private async Task VerifyRoomSwitchAsync()
+        {
+            await session.HostAsync();
+            if (await WaitForOwnSlotAsync(true) != 0)
+                throw new InvalidOperationException("The owner must occupy slot 0 in their own room.");
+
+            await session.JoinAsync(joinCode);
+            int firstSlot = await WaitForOwnSlotAsync(false);
+            await session.LeaveAsync();
+            if (await WaitForOwnSlotAsync(true) != 0)
+                throw new InvalidOperationException("Leaving must open a new own room.");
+
+            await session.JoinAsync(joinCode);
+            if (await WaitForOwnSlotAsync(false) != firstSlot)
+                throw new InvalidOperationException("The freed slot was not reused.");
+            Debug.Log("MUSHROOM_ROOM_SWITCH_PASSED own room, join, leave, and reuse");
+        }
+
+        private async Task<int> WaitForOwnSlotAsync(bool expectHost)
+        {
+            float until = Time.realtimeSinceStartup + 8f;
+            while (Time.realtimeSinceStartup < until && session.State.Status != SessionStatus.Failed)
+            {
+                var state = session.State;
+                if (state.Status == SessionStatus.Lobby && state.LocalIsHost == expectHost)
+                {
+                    for (int index = 0; index < state.Slots.Count; index++)
+                    {
+                        var slot = state.Slots[index];
+                        if (slot.Occupied && slot.ClientId == network.LocalClientId)
+                            return index;
+                    }
+                }
+                await Task.Yield();
+            }
+            throw new InvalidOperationException("No confirmed slot for the local player. " + session.State.Message);
         }
 
         private void Update()

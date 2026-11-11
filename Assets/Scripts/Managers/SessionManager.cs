@@ -12,6 +12,7 @@ namespace MushroomSurvival
         private LobbyNetworkState networkState;
         private NetworkPlayerSpawner playerSpawner;
         private ISessionConnector connector;
+        private SlotManager slotManager;
         private bool busy;
         private bool destroyed;
         private string joinCode = "";
@@ -25,56 +26,58 @@ namespace MushroomSurvival
             NetworkManager network,
             LobbyNetworkState state,
             NetworkPlayerSpawner spawner,
-            ISessionConnector sessionConnector)
+            ISessionConnector sessionConnector,
+            SlotManager slots)
         {
             networkManager = network;
             networkState = state;
             playerSpawner = spawner;
             connector = sessionConnector;
+            slotManager = slots;
             networkState.Changed += RefreshState;
             networkManager.OnClientConnectedCallback += OnClientConnected;
             networkManager.OnClientDisconnectCallback += OnClientDisconnected;
             networkManager.OnTransportFailure += OnTransportFailure;
         }
 
-        public Task HostAsync() => ConnectAsync(true, "");
+        public Task HostAsync() => networkManager.IsListening ? Task.CompletedTask : ConnectAsync(true, "");
 
         public Task JoinAsync(string code)
         {
+            if (busy)
+                return Task.CompletedTask;
             if (string.IsNullOrWhiteSpace(code))
             {
-                SetState(SessionStatus.Failed, "Enter a join code.");
+                SetState(State.Status, "Enter a join code.");
                 return Task.CompletedTask;
             }
-            return ConnectAsync(false, code.Trim().ToUpperInvariant());
+            var targetCode = code.Trim().ToUpperInvariant();
+            if (targetCode == joinCode)
+            {
+                SetState(State.Status, "You are already in this room.");
+                return Task.CompletedTask;
+            }
+            return ConnectAsync(false, targetCode);
         }
 
-        private async Task ConnectAsync(bool host, string code)
+        private async Task ConnectAsync(bool host, string code, string notice = "")
         {
-            if (busy || networkManager.IsListening || networkManager.ShutdownInProgress)
+            if (busy || destroyed)
                 return;
             busy = true;
             SetState(SessionStatus.Connecting, "Connecting to Relay...");
             try
             {
-                await connector.LeaveAsync();
-                joinCode = host ? await connector.CreateAsync() : code;
-                if (!host)
-                    await connector.JoinAsync(code);
-                if (destroyed)
-                {
-                    await connector.LeaveAsync();
-                    return;
-                }
-                if (!networkManager.IsListening || !networkManager.IsConnectedClient)
-                    throw new InvalidOperationException("The session did not start networking.");
-                RefreshState();
+                await CleanUpAsync();
+                await OpenRoomAsync(host, code, notice);
             }
             catch (Exception exception)
             {
                 await CleanUpAsync();
-                if (!destroyed)
+                if (host)
                     SetState(SessionStatus.Failed, exception.Message);
+                else
+                    await RestoreOwnRoomAsync(exception.Message);
             }
             finally
             {
@@ -82,26 +85,51 @@ namespace MushroomSurvival
             }
         }
 
-        public async Task LeaveAsync()
+        private async Task OpenRoomAsync(bool host, string code, string notice)
         {
-            if (busy)
+            if (destroyed)
                 return;
-            busy = true;
-            SetState(SessionStatus.Leaving, "Leaving session...");
-            await CleanUpAsync();
-            if (!destroyed)
-                SetState(SessionStatus.Offline);
-            busy = false;
+            if (host)
+                joinCode = await connector.CreateAsync();
+            else
+            {
+                await connector.JoinAsync(code);
+                joinCode = code;
+            }
+            if (destroyed)
+            {
+                await CleanUpAsync();
+                return;
+            }
+            if (!networkManager.IsListening || !networkManager.IsConnectedClient)
+                throw new InvalidOperationException("The session did not start networking.");
+            SetState(networkState.IsSpawned ? networkState.Status : SessionStatus.Connecting, notice);
         }
+
+        private async Task RestoreOwnRoomAsync(string joinError)
+        {
+            try
+            {
+                await OpenRoomAsync(true, "", joinError);
+            }
+            catch (Exception exception)
+            {
+                await CleanUpAsync();
+                SetState(SessionStatus.Failed, joinError + "\n" + exception.Message);
+            }
+        }
+
+        public Task LeaveAsync() => ConnectAsync(true, "");
 
         public void StartMatch()
         {
             if (busy || !networkManager.IsHost || !networkState.IsSpawned ||
                 networkState.Status != SessionStatus.Lobby ||
-                networkManager.ConnectedClientsIds.Count < LobbySettings.MinimumPlayersToStart)
+                networkState.PlayerCount < LobbySettings.MinimumPlayersToStart)
                 return;
-            matchParticipants = networkManager.ConnectedClientsIds.ToArray();
-            networkState.Publish(matchParticipants.Length, SessionStatus.Starting);
+            matchParticipants = networkState.GetSlots().Where(slot => slot.Occupied)
+                .Select(slot => slot.ClientId).ToArray();
+            networkState.PublishStatus(SessionStatus.Starting);
             startDeadline = Time.realtimeSinceStartup + 15f;
             try
             {
@@ -119,17 +147,26 @@ namespace MushroomSurvival
                 networkState.Status != SessionStatus.Starting)
                 return;
             if (playerSpawner.AllPlayersReady(networkManager, matchParticipants))
-                networkState.Publish(matchParticipants.Length, SessionStatus.Playing);
+                networkState.PublishStatus(SessionStatus.Playing);
             else if (Time.realtimeSinceStartup >= startDeadline)
                 FailSession("Player spawning timed out.");
         }
 
         private void OnClientConnected(ulong clientId)
         {
-            if (networkManager.IsHost && networkState.IsSpawned)
+            if (networkManager.IsHost)
             {
-                if (networkState.Status == SessionStatus.Lobby)
-                    networkState.Publish(networkManager.ConnectedClientsIds.Count, SessionStatus.Lobby);
+                if (!networkState.IsSpawned || networkState.Status == SessionStatus.Lobby)
+                {
+                    if (!slotManager.TryReserveSlot(clientId, out int index))
+                    {
+                        networkManager.DisconnectClient(clientId);
+                        return;
+                    }
+                    var slot = slotManager.InitSlot(index, clientId, LobbySettings.DefaultCharacterId);
+                    if (networkState.IsSpawned)
+                        networkState.PublishSlot(index, slot);
+                }
                 else if (Array.IndexOf(matchParticipants, clientId) < 0)
                     networkManager.DisconnectClient(clientId);
             }
@@ -138,34 +175,26 @@ namespace MushroomSurvival
 
         private void OnClientDisconnected(ulong clientId)
         {
-            if (destroyed || busy)
+            if (destroyed)
                 return;
             if (!networkManager.IsHost || clientId == networkManager.LocalClientId)
             {
-                FailSession("Disconnected from the host. Return to the menu and join again.");
+                FailSession("Disconnected from the host.");
                 return;
             }
+            int index = slotManager.ReleaseSlot(clientId);
             if (networkState.Status == SessionStatus.Starting || networkState.Status == SessionStatus.Playing)
             {
                 if (Array.IndexOf(matchParticipants, clientId) >= 0)
                     FailSession("A player left. The session has ended.");
             }
-            else if (networkState.IsSpawned)
-                networkState.Publish(networkManager.ConnectedClientsIds.Count, SessionStatus.Lobby);
+            else if (networkState.IsSpawned && index >= 0)
+                networkState.PublishSlot(index, default);
         }
 
         private void OnTransportFailure() => FailSession("The network connection failed.");
 
-        private async void FailSession(string message)
-        {
-            if (busy || destroyed)
-                return;
-            busy = true;
-            await CleanUpAsync();
-            if (!destroyed)
-                SetState(SessionStatus.Failed, message);
-            busy = false;
-        }
+        private async void FailSession(string message) => await ConnectAsync(true, "", message);
 
         private async Task CleanUpAsync()
         {
@@ -186,12 +215,13 @@ namespace MushroomSurvival
                     await Task.Yield();
                 joinCode = "";
                 matchParticipants = Array.Empty<ulong>();
+                slotManager.Clear();
             }
         }
 
         private void RefreshState()
         {
-            if (destroyed || State.Status == SessionStatus.Leaving || !networkManager.IsListening)
+            if (destroyed || busy || !networkManager.IsListening)
                 return;
             var phase = networkState.IsSpawned ? networkState.Status : SessionStatus.Connecting;
             SetState(phase);
@@ -201,8 +231,10 @@ namespace MushroomSurvival
         {
             if (destroyed)
                 return;
-            var count = networkState != null && networkState.IsSpawned ? networkState.PlayerCount : 0;
-            State = new SessionData(status, joinCode, count, networkManager != null && networkManager.IsHost, message);
+            bool hasLobby = networkState != null && networkState.IsSpawned;
+            State = new SessionData(status, joinCode, hasLobby ? networkState.PlayerCount : 0,
+                networkManager != null && networkManager.IsHost, message,
+                hasLobby ? networkState.GetSlots() : null);
             StateChanged?.Invoke(State);
         }
 

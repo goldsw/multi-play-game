@@ -46,6 +46,7 @@ namespace MushroomSurvival.Editor
                 }
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Clear();
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(cachedRegistry);
+                ConfigureLobbyPreview(loadedScene);
                 EditorUtility.SetDirty(sceneNetwork);
                 EditorSceneManager.SaveScene(loadedScene);
                 if (!wasLoaded)
@@ -136,6 +137,7 @@ namespace MushroomSurvival.Editor
             }).ToArray();
             spawner.Configure(playerPrefab.GetComponent<NetworkObject>(), points);
             roots.AddComponent<LobbyBootstrap>().Configure(network, state, spawner, manager, presenter, view);
+            ConfigureLobbyPreview(scene);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             var existingScenes = EditorBuildSettings.scenes.Where(item => item.path != ScenePath);
@@ -171,6 +173,39 @@ namespace MushroomSurvival.Editor
             wall.transform.localScale = scale;
             wall.GetComponent<Renderer>().sharedMaterial =
                 GetMaterial(ArenaMaterialPath, new Color(0.55f, 0.6f, 0.55f));
+        }
+
+        private static void ConfigureLobbyPreview(Scene scene)
+        {
+            var bootstrap = scene.GetRootGameObjects().Select(root => root.GetComponent<LobbyBootstrap>())
+                .Single(component => component != null);
+            var preview = bootstrap.GetComponent<LobbyPreviewView>();
+            if (preview == null)
+                preview = bootstrap.gameObject.AddComponent<LobbyPreviewView>();
+
+            var cubes = new GameObject[LobbySettings.PlayerCount];
+            var material = GetMaterial(CubeMaterialPath, new Color(0.15f, 0.6f, 0.9f));
+            for (int index = 0; index < cubes.Length; index++)
+            {
+                var name = "Lobby Slot " + index;
+                var existing = bootstrap.transform.Find(name);
+                if (existing != null)
+                {
+                    cubes[index] = existing.gameObject;
+                    continue;
+                }
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.name = name;
+                SceneManager.MoveGameObjectToScene(cube, scene);
+                cube.transform.SetParent(bootstrap.transform, false);
+                cube.transform.localPosition = new Vector3(4.5f - index * 3f, 0.55f, index % 2 == 0 ? 0.8f : -0.8f);
+                cube.GetComponent<Renderer>().sharedMaterial = material;
+                Object.DestroyImmediate(cube.GetComponent<Collider>());
+                cube.SetActive(false);
+                cubes[index] = cube;
+            }
+            preview.Configure(cubes);
+            bootstrap.ConfigurePreview(preview);
         }
 
         private static Material GetMaterial(string path, Color color)

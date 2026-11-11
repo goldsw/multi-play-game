@@ -11,7 +11,10 @@ namespace MushroomSurvival
         public event Action StartRequested;
 
         private SessionData state;
+        private bool joinPopupOpen;
+        private bool lastLobbyWasHost = true;
         private string joinCode = string.Empty;
+        private Font koreanFont;
         private GUIStyle titleStyle;
         private GUIStyle textStyle;
         private GUIStyle buttonStyle;
@@ -20,11 +23,15 @@ namespace MushroomSurvival
         public void Show(SessionData sessionState)
         {
             state = sessionState;
+            if (state.Status == SessionStatus.Lobby)
+                lastLobbyWasHost = state.LocalIsHost;
+            if (state.Status != SessionStatus.Lobby || !state.LocalIsHost)
+                joinPopupOpen = false;
         }
 
         private void OnGUI()
         {
-            if (state == null)
+            if (state == null || Screen.width <= 0 || Screen.height <= 0)
                 return;
 
             EnsureStyles();
@@ -38,31 +45,10 @@ namespace MushroomSurvival
 
             try
             {
-                bool playing = state.Status == SessionStatus.Playing;
-                Rect panel = playing ? new Rect(24, 24, 420, 230) : new Rect(390, 100, 500, 520);
-                GUILayout.BeginArea(panel, GUI.skin.box);
-                GUILayout.Space(12);
-                GUILayout.Label(playing ? "MATCH STARTED" : "MUSHROOM SURVIVAL", titleStyle);
-                GUILayout.Label("Players: " + state.PlayerCount + " / " + LobbySettings.PlayerCount, textStyle);
-                GUILayout.Label("Status: " + state.Status, textStyle);
-
-                if (!string.IsNullOrEmpty(state.Message))
-                    GUILayout.Label(state.Message, textStyle);
-
-                bool busy = state.Status == SessionStatus.Connecting ||
-                    state.Status == SessionStatus.Starting || state.Status == SessionStatus.Leaving;
-                GUI.enabled = previousEnabled && !busy;
-                if (playing)
-                {
-                    if (GUILayout.Button("Leave match", buttonStyle))
-                        LeaveRequested?.Invoke();
-                }
-                else
-                {
-                    DrawLobby();
-                }
-
-                GUILayout.EndArea();
+                DrawStatus();
+                DrawRoomControls();
+                if (joinPopupOpen)
+                    DrawJoinPopup();
             }
             finally
             {
@@ -71,49 +57,106 @@ namespace MushroomSurvival
             }
         }
 
-        private void DrawLobby()
+        private void DrawStatus()
         {
-            GUILayout.Space(12);
-            if (state.Status == SessionStatus.Lobby || state.Status == SessionStatus.Starting)
+            GUI.Box(new Rect(20, 20, 420, 92), GUIContent.none);
+            string heading = state.Status.ToString();
+            if (!string.IsNullOrEmpty(state.JoinCode))
+                heading = "방 코드  " + state.JoinCode;
+
+            GUI.Label(new Rect(36, 29, 388, 40), heading, titleStyle);
+            GUI.Label(new Rect(36, 68, 388, 35),
+                "인원  " + state.PlayerCount + " / " + LobbySettings.PlayerCount, textStyle);
+
+            if (!string.IsNullOrEmpty(state.Message))
             {
-                GUILayout.Label("Join code: " + state.JoinCode, titleStyle);
-                GUILayout.Label(state.LocalIsHost ? "You are the host." : "Waiting for the host.", textStyle);
-                bool previousEnabled = GUI.enabled;
-                GUI.enabled = previousEnabled && state.LocalIsHost &&
-                    state.Status == SessionStatus.Lobby && state.PlayerCount >= LobbySettings.MinimumPlayersToStart;
-                var startLabel = LobbySettings.MinimumPlayersToStart == 1
-                    ? "Start match (solo test enabled)"
-                    : $"Start match ({LobbySettings.MinimumPlayersToStart} players required)";
-                if (GUILayout.Button(startLabel, buttonStyle))
-                    StartRequested?.Invoke();
-                GUI.enabled = previousEnabled;
-                if (GUILayout.Button("Leave lobby", buttonStyle))
-                    LeaveRequested?.Invoke();
+                GUI.Box(new Rect(20, 124, 420, 82), GUIContent.none);
+                GUI.Label(new Rect(36, 132, 388, 66), state.Message, textStyle);
+            }
+        }
+
+        private void DrawRoomControls()
+        {
+            Rect roomButton = new Rect(20, 650, 172, 50);
+            if (state.Status == SessionStatus.Offline || state.Status == SessionStatus.Failed)
+            {
+                if (GUI.Button(roomButton, "다시 시도", buttonStyle))
+                    HostRequested?.Invoke();
                 return;
             }
 
-            if (GUILayout.Button("Create lobby", buttonStyle))
-                HostRequested?.Invoke();
-            GUILayout.Space(16);
-            GUILayout.Label("Enter a Relay join code", textStyle);
-            joinCode = GUILayout.TextField(joinCode, 32, inputStyle);
-            bool enabled = GUI.enabled;
-            GUI.enabled = enabled && !string.IsNullOrWhiteSpace(joinCode);
-            if (GUILayout.Button("Join lobby", buttonStyle))
+            bool previousEnabled = GUI.enabled;
+            bool inLobby = state.Status == SessionStatus.Lobby;
+            bool playing = state.Status == SessionStatus.Playing;
+            bool canUseRoom = inLobby || playing;
+            GUI.enabled = previousEnabled && canUseRoom && !joinPopupOpen;
+            if (GUI.Button(roomButton, lastLobbyWasHost && !playing ? "방 찾기" : "방 나가기", buttonStyle))
+            {
+                if (lastLobbyWasHost && !playing)
+                {
+                    joinCode = string.Empty;
+                    joinPopupOpen = true;
+                }
+                else
+                {
+                    LeaveRequested?.Invoke();
+                }
+            }
+
+            if (lastLobbyWasHost && !playing)
+            {
+                GUI.enabled = previousEnabled && inLobby && !joinPopupOpen &&
+                    state.PlayerCount >= LobbySettings.MinimumPlayersToStart;
+                if (GUI.Button(new Rect(1088, 650, 172, 50), "게임 시작", buttonStyle))
+                    StartRequested?.Invoke();
+            }
+
+            GUI.enabled = previousEnabled;
+        }
+
+        private void DrawJoinPopup()
+        {
+            GUI.Box(new Rect(430, 260, 420, 200), GUIContent.none);
+            GUI.Label(new Rect(454, 277, 372, 40), "참가할 방 코드", titleStyle);
+            joinCode = GUI.TextField(new Rect(454, 325, 372, 42), joinCode, 32, inputStyle);
+
+            if (GUI.Button(new Rect(454, 390, 178, 45), "취소", buttonStyle))
+                joinPopupOpen = false;
+
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = previousEnabled && !string.IsNullOrWhiteSpace(joinCode);
+            if (GUI.Button(new Rect(648, 390, 178, 45), "참가", buttonStyle))
+            {
+                joinPopupOpen = false;
                 JoinRequested?.Invoke(joinCode);
-            GUI.enabled = enabled;
-            GUILayout.Space(12);
-            GUILayout.Label($"Share the lobby code with up to {LobbySettings.PlayerCount - 1} players.", textStyle);
+            }
+            GUI.enabled = previousEnabled;
         }
 
         private void EnsureStyles()
         {
             if (titleStyle != null)
                 return;
-            titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 25, fontStyle = FontStyle.Bold, wordWrap = true };
-            textStyle = new GUIStyle(GUI.skin.label) { fontSize = 19, wordWrap = true };
-            buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 19, fixedHeight = 46 };
-            inputStyle = new GUIStyle(GUI.skin.textField) { fontSize = 22, fixedHeight = 42 };
+
+            koreanFont = Font.CreateDynamicFontFromOSFont(
+                new[] { "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR" }, 22);
+            titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 24, fontStyle = FontStyle.Bold };
+            textStyle = new GUIStyle(GUI.skin.label) { fontSize = 18, wordWrap = true };
+            buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 20 };
+            inputStyle = new GUIStyle(GUI.skin.textField) { fontSize = 22 };
+            if (koreanFont != null)
+            {
+                titleStyle.font = koreanFont;
+                textStyle.font = koreanFont;
+                buttonStyle.font = koreanFont;
+                inputStyle.font = koreanFont;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (koreanFont != null)
+                Destroy(koreanFont);
         }
     }
 }
