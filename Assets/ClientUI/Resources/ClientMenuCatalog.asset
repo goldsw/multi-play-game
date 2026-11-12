@@ -1,0 +1,224 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11111111111141118111111111111111, type: 3}
+  m_Name: ClientMenuCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ClientUI.ClientMenuCatalog
+  startingCurrency: 500
+  rankRewards:
+  - 500
+  - 300
+  - 200
+  - 100
+  characters:
+  - id: 0
+    displayName: 강아지
+    description: 마을의 리더
+    placeholderColor: {r: 0.78, g: 0.55, b: 0.32, a: 1}
+    portrait: {fileID: 0}
+    previewPrefab: {fileID: 0}
+  - id: 1
+    displayName: 고양이
+    description: 자기주장이 강한 친구
+    placeholderColor: {r: 0.67, g: 0.6, b: 0.78, a: 1}
+    portrait: {fileID: 0}
+    previewPrefab: {fileID: 0}
+  - id: 2
+    displayName: 토끼
+    description: 숲을 빠르게 살피는 친구
+    placeholderColor: {r: 0.93, g: 0.76, b: 0.78, a: 1}
+    portrait: {fileID: 0}
+    previewPrefab: {fileID: 0}
+  - id: 3
+    displayName: 오리
+    description: 물웅덩이를 좋아하는 친구
+    placeholderColor: {r: 0.96, g: 0.82, b: 0.35, a: 1}
+    portrait: {fileID: 0}
+    previewPrefab: {fileID: 0}
+  - id: 4
+    displayName: 다람쥐
+    description: 성실한 수집가
+    placeholderColor: {r: 0.68, g: 0.4, b: 0.25, a: 1}
+    portrait: {fileID: 0}
+    previewPrefab: {fileID: 0}
+  cosmetics:
+  - id: skin_default
+    kind: 0
+    character: 5
+    displayName: 기본 숲 친구
+    description: 기본 외형
+    price: 0
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: skin_moss
+    kind: 0
+    character: 5
+    displayName: 이끼 숲 산책
+    description: 준비 중인 스킨 미리보기
+    price: 150
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: skin_berry
+    kind: 0
+    character: 5
+    displayName: 산딸기 축제
+    description: 준비 중인 스킨 미리보기
+    price: 250
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: voice_default
+    kind: 1
+    character: 5
+    displayName: 기본 목소리
+    description: 기본 캐릭터 사운드
+    price: 0
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: voice_forest
+    kind: 1
+    character: 5
+    displayName: 숲의 인사
+    description: 준비 중인 사운드 미리보기
+    price: 100
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: pose_default
+    kind: 2
+    character: 5
+    displayName: 기본 승리 포즈
+    description: 기본 포즈
+    price: 0
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: pose_dance
+    kind: 2
+    character: 5
+    displayName: 버섯 축하 춤
+    description: 준비 중인 포즈 미리보기
+    price: 200
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  - id: pose_wave
+    kind: 2
+    character: 5
+    displayName: 숲 친구에게 손 흔들기
+    description: 준비 중인 포즈 미리보기
+    price: 300
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    animatorState:
+  items:
+  - itemId: ItemID_Water_Bucket
+    displayName: 물웅덩이
+    itemType: 0
+    iconSprite: {fileID: 0}
+    tileSprite: {fileID: 0}
+    activeDurationSeconds: 5
+    effectDescription: speed = speed / 50;
+    throwRange: 2
+    skillTileRange: 1
+    targetTag: Ground
+    objectLimit: 3
+    isDestroyOnCollision: 0
+  - itemId: ItemID_Apple
+    displayName: 사과
+    itemType: 1
+    iconSprite: {fileID: 0}
+    tileSprite: {fileID: 0}
+    activeDurationSeconds: -1
+    effectDescription: 피격 시 스턴 (지속 시간은 데이터 설정값).
+    throwRange: 0
+    skillTileRange: 0
+    targetTag: Player
+    objectLimit: 0
+    isDestroyOnCollision: 0
+  - itemId: ItemID_Banana
+    displayName: 바나나
+    itemType: 0
+    iconSprite: {fileID: 0}
+    tileSprite: {fileID: 0}
+    activeDurationSeconds: -1
+    effectDescription: 밟은 플레이어가 미끄러지고 스턴됩니다.
+    throwRange: 0
+    skillTileRange: 0
+    targetTag: Ground
+    objectLimit: 1
+    isDestroyOnCollision: 0
+  skills:
+  - skillId: runner_dog
+    displayName: 물어와!
+    character: 0
+    role: 0
+    cooldownSeconds: -1
+    activeDurationSeconds: -1
+    skillTileRange: 0
+    effectDescription: 대상에게 반대 방향 이동 효과를 적용합니다.
+    iconSprite: {fileID: 0}
+  - skillId: runner_cat
+    displayName: 생선 투척!
+    character: 1
+    role: 0
+    cooldownSeconds: -1
+    activeDurationSeconds: -1
+    skillTileRange: 0
+    effectDescription: 대상의 화면을 잠시 가립니다.
+    iconSprite: {fileID: 0}
+  - skillId: runner_rabbit
+    displayName: 도망가자!
+    character: 2
+    role: 0
+    cooldownSeconds: -1
+    activeDurationSeconds: -1
+    skillTileRange: 0
+    effectDescription: 일정 시간 이동 속도를 높입니다.
+    iconSprite: {fileID: 0}
+  - skillId: runner_duck
+    displayName: 놀랐잖아!
+    character: 3
+    role: 0
+    cooldownSeconds: -1
+    activeDurationSeconds: -1
+    skillTileRange: 0
+    effectDescription: 알을 최대 2개 설치합니다.
+    iconSprite: {fileID: 0}
+  - skillId: runner_squirrel
+    displayName: 숨자!
+    character: 4
+    role: 0
+    cooldownSeconds: -1
+    activeDurationSeconds: -1
+    skillTileRange: 0
+    effectDescription: 일정 시간 모습을 숨깁니다.
+    iconSprite: {fileID: 0}
+  - skillId: chaser_trap
+    displayName: 잡자!
+    character: 5
+    role: 1
+    cooldownSeconds: -1
+    activeDurationSeconds: -1
+    skillTileRange: 0
+    effectDescription: 덫을 최대 3개 설치합니다.
+    iconSprite: {fileID: 0}
