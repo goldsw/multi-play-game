@@ -14,6 +14,7 @@ namespace MushroomSurvival
     public sealed class SkillDefinition : ScriptableObject
     {
         [SerializeField] private string skillId;
+        [SerializeField] private Sprite skillIcon;
         [SerializeField] private SkillRangeEnum skillRangeEnum;
         [SerializeField, Min(0f)] private float skillRange;
         [SerializeField, Min(0f)] private float targetCircleRadius = 0.75f;
@@ -26,6 +27,7 @@ namespace MushroomSurvival
         [SerializeField, Min(0f)] private float objectLifetime;
 
         public string SkillId => skillId;
+        public Sprite SkillIcon => skillIcon;
         public SkillRangeEnum RangeDisplay => skillRangeEnum;
         public float SkillRange => skillRange;
         public float TargetCircleRadius => targetCircleRadius;

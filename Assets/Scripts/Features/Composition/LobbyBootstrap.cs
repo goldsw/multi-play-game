@@ -51,6 +51,7 @@ namespace MushroomSurvival
 #endif
             sessionManager.Initialize(networkManager, networkState, playerSpawner, connector, slots);
             presenter.Initialize(sessionManager, view, preview);
+            gameObject.AddComponent<InGameCooldownHud>().Configure(networkManager, networkState);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (smokeTest)
                 gameObject.AddComponent<LobbySmokeRunner>().Initialize(

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: SK004
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillDefinition
   skillId: SK004
+  skillIcon: {fileID: 21300000, guid: 8367db90d0ee3454eb501e419ccf7f6c, type: 3}
   skillRangeEnum: 3
   skillRange: 1
   targetCircleRadius: 0.75
