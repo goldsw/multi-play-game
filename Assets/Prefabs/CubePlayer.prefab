@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 3310413163118715067}
   - component: {fileID: 1678051912722194157}
   - component: {fileID: 5096880100800037670}
+  - component: {fileID: 1509542063071240974}
   m_Layer: 0
   m_Name: CubePlayer
   m_TagString: Untagged
@@ -290,3 +291,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.PlayerPositionCorrection
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &1509542063071240974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0141195be58f4df394e5db6ec595e2b1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillRangePreview
+  inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  skill: {fileID: 11400000, guid: 2ad700e724eb4c57ae5637823f8f3de4, type: 2}
+  rangeMaterial: {fileID: 2100000, guid: b8f0c218a73b41b7abe6c90ed5e1350e, type: 2}

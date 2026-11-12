@@ -17,6 +17,8 @@ namespace MushroomSurvival.Editor
         private const string PrefabPath = "Assets/Prefabs/CubePlayer.prefab";
         private const string CubeMaterialPath = "Assets/Resources/Models/Characters/CubePlayer.mat";
         private const string ArenaMaterialPath = "Assets/Resources/Models/Maps/Arena.mat";
+        private const string DefaultSkillPath = "Assets/Resources/Skills/SK001.asset";
+        private const string SkillRangeMaterialPath = "Assets/Resources/Skills/SkillRange.mat";
 
         [MenuItem("Tools/Mushroom Survival/Create Multiplayer Lobby")]
         public static void CreateScene()
@@ -200,6 +202,12 @@ namespace MushroomSurvival.Editor
             movement.Configure(input);
             if (!player.TryGetComponent<PlayerPositionCorrection>(out _))
                 player.AddComponent<PlayerPositionCorrection>();
+            if (!player.TryGetComponent<SkillRangePreview>(out _))
+            {
+                var skill = AssetDatabase.LoadAssetAtPath<SkillDefinition>(DefaultSkillPath);
+                var material = AssetDatabase.LoadAssetAtPath<Material>(SkillRangeMaterialPath);
+                player.AddComponent<SkillRangePreview>().Configure(input, skill, material);
+            }
         }
 
         private static void ConfigurePlayerCollisions(Scene scene, NetworkManager network)
