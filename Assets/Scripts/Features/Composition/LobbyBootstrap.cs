@@ -36,6 +36,7 @@ namespace MushroomSurvival
         {
             var slots = new SlotManager();
             networkState.Initialize(slots);
+            playerSpawner.InitializeSkills(GetComponent<EffectObjectManager>(), networkState);
             gameObject.AddComponent<LobbyConnectionGate>().Initialize(networkManager, networkState, slots);
             ISessionConnector connector = new RelaySessionConnector();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

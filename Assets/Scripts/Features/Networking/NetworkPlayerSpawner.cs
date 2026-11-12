@@ -9,6 +9,14 @@ namespace MushroomSurvival
     {
         [SerializeField] private NetworkObject playerPrefab;
         [SerializeField] private Transform[] spawnPoints;
+        private EffectObjectManager effectObjects;
+        private LobbyNetworkState lobby;
+
+        public void InitializeSkills(EffectObjectManager manager, LobbyNetworkState state)
+        {
+            effectObjects = manager;
+            lobby = state;
+        }
 
         public void Configure(NetworkObject prefab, Transform[] positions)
         {
@@ -38,6 +46,8 @@ namespace MushroomSurvival
                     availablePoints.RemoveAt(pointIndex);
                     var player = Instantiate(playerPrefab, point.position, point.rotation);
                     spawned.Add(player);
+                    if (player.TryGetComponent<SkillCaster>(out var caster))
+                        caster.Initialize(effectObjects, lobby);
                     player.SpawnAsPlayerObject(clientId);
                 }
             }

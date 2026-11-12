@@ -17,8 +17,6 @@ namespace MushroomSurvival.Editor
         private const string PrefabPath = "Assets/Prefabs/CubePlayer.prefab";
         private const string CubeMaterialPath = "Assets/Resources/Models/Characters/CubePlayer.mat";
         private const string ArenaMaterialPath = "Assets/Resources/Models/Maps/Arena.mat";
-        private const string DefaultSkillPath = "Assets/Resources/Skills/SK001.asset";
-        private const string SkillRangeMaterialPath = "Assets/Resources/Skills/SkillRange.mat";
 
         [MenuItem("Tools/Mushroom Survival/Create Multiplayer Lobby")]
         public static void CreateScene()
@@ -28,6 +26,7 @@ namespace MushroomSurvival.Editor
             Directory.CreateDirectory("Assets/Resources/Models/Characters");
             Directory.CreateDirectory("Assets/Resources/Models/Maps");
             AssetDatabase.Refresh();
+            var eggPrefab = SkillSceneSetup.PrepareEgg();
             if (File.Exists(ScenePath))
             {
                 var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
@@ -44,7 +43,7 @@ namespace MushroomSurvival.Editor
                 cachedPrefab.GetComponent<Renderer>().sharedMaterial =
                     GetMaterial(CubeMaterialPath, new Color(0.15f, 0.6f, 0.9f));
                 PrefabUtility.SavePrefabAsset(cachedPrefab);
-                var cachedRegistry = GetPrefabRegistry(cachedPrefab);
+                var cachedRegistry = GetPrefabRegistry(cachedPrefab, eggPrefab);
                 var loadedScene = SceneManager.GetSceneByPath(ScenePath);
                 var wasLoaded = loadedScene.IsValid() && loadedScene.isLoaded;
                 if (!wasLoaded)
@@ -61,6 +60,7 @@ namespace MushroomSurvival.Editor
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(cachedRegistry);
                 ConfigureLobbyPreview(loadedScene);
                 ConfigurePlayerCollisions(loadedScene, sceneNetwork);
+                SkillSceneSetup.ConfigureScene(loadedScene);
                 EditorUtility.SetDirty(sceneNetwork);
                 EditorSceneManager.SaveScene(loadedScene);
                 if (!wasLoaded)
@@ -85,7 +85,7 @@ namespace MushroomSurvival.Editor
             ConfigurePlayerMovement(cube);
             var playerPrefab = PrefabUtility.SaveAsPrefabAsset(cube, PrefabPath);
             Object.DestroyImmediate(cube);
-            var prefabs = GetPrefabRegistry(playerPrefab);
+            var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab);
 
             var previousScene = SceneManager.GetActiveScene();
             var scene = EditorSceneManager.NewScene(
@@ -154,6 +154,7 @@ namespace MushroomSurvival.Editor
             roots.AddComponent<LobbyBootstrap>().Configure(network, state, spawner, manager, presenter, view);
             ConfigureLobbyPreview(scene);
             ConfigurePlayerCollisions(scene, network);
+            SkillSceneSetup.ConfigureScene(scene);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             var existingScenes = EditorBuildSettings.scenes.Where(item => item.path != ScenePath);
@@ -202,12 +203,7 @@ namespace MushroomSurvival.Editor
             movement.Configure(input);
             if (!player.TryGetComponent<PlayerPositionCorrection>(out _))
                 player.AddComponent<PlayerPositionCorrection>();
-            if (!player.TryGetComponent<SkillRangePreview>(out _))
-            {
-                var skill = AssetDatabase.LoadAssetAtPath<SkillDefinition>(DefaultSkillPath);
-                var material = AssetDatabase.LoadAssetAtPath<Material>(SkillRangeMaterialPath);
-                player.AddComponent<SkillRangePreview>().Configure(input, skill, material);
-            }
+            SkillSceneSetup.ConfigurePlayer(player, input);
         }
 
         private static void ConfigurePlayerCollisions(Scene scene, NetworkManager network)
@@ -271,7 +267,7 @@ namespace MushroomSurvival.Editor
             return material;
         }
 
-        private static NetworkPrefabsList GetPrefabRegistry(GameObject prefab)
+        private static NetworkPrefabsList GetPrefabRegistry(GameObject prefab, GameObject egg)
         {
             if (prefab == null)
                 throw new System.InvalidOperationException("The cube player prefab is missing.");
@@ -284,6 +280,8 @@ namespace MushroomSurvival.Editor
             }
             if (!registry.Contains(prefab))
                 registry.Add(new NetworkPrefab { Prefab = prefab });
+            if (!registry.Contains(egg))
+                registry.Add(new NetworkPrefab { Prefab = egg });
             EditorUtility.SetDirty(registry);
             return registry;
         }

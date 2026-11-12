@@ -7,63 +7,38 @@ namespace MushroomSurvival
     [DisallowMultipleComponent]
     public sealed class SkillRangePreview : NetworkBehaviour
     {
-        private const string SkillActionPath = "Player/Skill";
         private const float SurfaceOffset = 0.06f;
 
-        [SerializeField] private InputActionAsset inputActions;
         [SerializeField] private SkillDefinition skill;
         [SerializeField] private Material rangeMaterial;
 
         private Collider playerCollider;
-        private InputAction skillAction;
+        private SkillInput input;
         private SkillRangeView view;
 
         private void Awake()
         {
             playerCollider = GetComponent<Collider>();
+            input = GetComponent<SkillInput>();
             view = new SkillRangeView(transform, rangeMaterial);
         }
 
-        public void Configure(InputActionAsset actions, SkillDefinition initialSkill, Material material)
+        public void Configure(SkillDefinition initialSkill, Material material)
         {
-            inputActions = actions;
             skill = initialSkill;
             rangeMaterial = material;
         }
 
         public void SetSkill(SkillDefinition definition) => skill = definition;
 
-        public override void OnNetworkSpawn()
-        {
-            if (IsOwner)
-                EnableInput();
-        }
-
-        public override void OnGainedOwnership() => EnableInput();
-        public override void OnLostOwnership() => ReleaseInput();
-        public override void OnNetworkDespawn() => ReleaseInput();
+        public override void OnLostOwnership() => view.Hide();
+        public override void OnNetworkDespawn() => view.Hide();
 
         private void OnDisable() => view?.Hide();
 
-        private void EnableInput()
-        {
-            if (skillAction != null || inputActions == null)
-                return;
-
-            skillAction = inputActions.FindAction(SkillActionPath, throwIfNotFound: true).Clone();
-            skillAction.Enable();
-        }
-
-        private void ReleaseInput()
-        {
-            skillAction?.Dispose();
-            skillAction = null;
-            view?.Hide();
-        }
-
         private void LateUpdate()
         {
-            if (!IsSpawned || !IsOwner || skillAction?.IsPressed() != true ||
+            if (!IsSpawned || !IsOwner || input?.IsHeld != true ||
                 skill == null || skill.RangeDisplay == SkillRangeEnum.None)
             {
                 view.Hide();
