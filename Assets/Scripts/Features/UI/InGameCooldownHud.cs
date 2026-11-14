@@ -19,7 +19,7 @@ namespace MushroomSurvival
         {
             network = manager;
             lobby = state;
-            canvas = CooldownHudLayout.Create(transform, out var skill, out var item);
+            canvas = CooldownHudLayout.Create(transform, () => network.ServerTime.Time, out var skill, out var item);
             SkillSlot = skill;
             ItemSlot = item;
             canvas.SetActive(false);
@@ -61,9 +61,6 @@ namespace MushroomSurvival
                 }
                 SkillSlot.Timer.SetCooldown(double.IsPositiveInfinity(next) ? 0d : next, caster.Skill.CooldownSeconds);
             }
-
-            SkillSlot.Timer.Render(now);
-            ItemSlot.Timer.Render(now);
         }
     }
 }

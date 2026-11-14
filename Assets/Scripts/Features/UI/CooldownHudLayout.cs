@@ -10,7 +10,7 @@ namespace MushroomSurvival
         private Sprite disc;
         private Sprite ring;
 
-        public static GameObject Create(Transform parent, out CooldownSlot skill, out CooldownSlot item)
+        public static GameObject Create(Transform parent, Func<double> clock, out CooldownSlot skill, out CooldownSlot item)
         {
             var root = new GameObject("In Game Cooldowns", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.transform.SetParent(parent, false);
@@ -28,12 +28,12 @@ namespace MushroomSurvival
                 float distance = new Vector2(x, y).magnitude;
                 return Coverage(Mathf.Min(distance - 0.41f, 0.49f - distance));
             });
-            skill = layout.CreateSlot("Skill Slot", 76f, 105f);
-            item = layout.CreateSlot("Item Slot", 60f, 39f);
+            skill = layout.CreateSlot("Skill Slot", 76f, 105f, clock);
+            item = layout.CreateSlot("Item Slot", 60f, 39f, clock);
             return root;
         }
 
-        private CooldownSlot CreateSlot(string name, float size, float right)
+        private CooldownSlot CreateSlot(string name, float size, float right, Func<double> clock)
         {
             var slot = new GameObject(name, typeof(RectTransform));
             var rect = (RectTransform)slot.transform;
@@ -52,7 +52,7 @@ namespace MushroomSurvival
             var icon = AddImage(rect, "Icon", null, Color.white, 0.58f);
             icon.preserveAspect = true;
 
-            slot.AddComponent<CooldownTimer>().Configure(fill);
+            slot.AddComponent<CoolDownButton>().Configure(fill, clock);
             var view = slot.AddComponent<CooldownSlot>();
             view.Configure(icon);
             return view;

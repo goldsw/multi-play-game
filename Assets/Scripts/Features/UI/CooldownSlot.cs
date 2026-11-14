@@ -4,16 +4,16 @@ using UnityEngine.UI;
 namespace MushroomSurvival
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(CooldownTimer))]
+    [RequireComponent(typeof(CoolDownButton))]
     public sealed class CooldownSlot : MonoBehaviour
     {
         [SerializeField] private Image icon;
-        private CooldownTimer timer;
+        private CoolDownButton timer;
 
-        public CooldownTimer Timer => timer;
+        public CoolDownButton Timer => timer;
         public bool IsEquipped => icon.sprite != null;
 
-        private void Awake() => timer = GetComponent<CooldownTimer>();
+        private void Awake() => timer = GetComponent<CoolDownButton>();
 
         public void Configure(Image iconImage)
         {
