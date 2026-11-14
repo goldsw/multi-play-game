@@ -13,6 +13,11 @@ MonoBehaviour:
   m_Name: SK003
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillDefinition
   skillId: SK003
+  skillIcon: {fileID: 21300000, guid: 5a1fc1ccb23547e1b419240d2bdf30c5, type: 3}
   skillRangeEnum: 0
   skillRange: 0
   targetCircleRadius: 0.75
+  cooldownSeconds: 20
+  effect: {fileID: 11400000, guid: 05c11ac1fe944d64a03ca79ff144093b, type: 2}
+  charges: 1
+  cooldownAfterEffect: 1

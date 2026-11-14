@@ -28,6 +28,8 @@ namespace MushroomSurvival.Editor
             AssetDatabase.Refresh();
             var eggPrefab = SkillSceneSetup.PrepareEgg();
             var fishPrefab = SkillSceneSetup.PrepareFish();
+            var dogPrefab = SkillSceneSetup.PrepareDog();
+            var taggerPrefab = SkillSceneSetup.PrepareTaggerTrap();
             if (File.Exists(ScenePath))
             {
                 var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
@@ -44,7 +46,7 @@ namespace MushroomSurvival.Editor
                 cachedPrefab.GetComponent<Renderer>().sharedMaterial =
                     GetMaterial(CubeMaterialPath, new Color(0.15f, 0.6f, 0.9f));
                 PrefabUtility.SavePrefabAsset(cachedPrefab);
-                var cachedRegistry = GetPrefabRegistry(cachedPrefab, eggPrefab, fishPrefab);
+                var cachedRegistry = GetPrefabRegistry(cachedPrefab, eggPrefab, fishPrefab, dogPrefab, taggerPrefab);
                 var loadedScene = SceneManager.GetSceneByPath(ScenePath);
                 var wasLoaded = loadedScene.IsValid() && loadedScene.isLoaded;
                 if (!wasLoaded)
@@ -80,7 +82,7 @@ namespace MushroomSurvival.Editor
             ConfigurePlayer(cube);
             var playerPrefab = PrefabUtility.SaveAsPrefabAsset(cube, PrefabPath);
             Object.DestroyImmediate(cube);
-            var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab, fishPrefab);
+            var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab, fishPrefab, dogPrefab, taggerPrefab);
 
             var previousScene = SceneManager.GetActiveScene();
             var scene = EditorSceneManager.NewScene(

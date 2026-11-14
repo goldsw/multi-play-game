@@ -12,6 +12,7 @@ namespace MushroomSurvival
         private readonly List<ActiveEffect> active = new();
 
         private NetworkTickSystem tickSystem;
+        private CharacterStateMachine character;
 
         public IReadOnlyList<ActiveEffect> ActiveEffects { get; private set; }
         public event Action ActiveEffectsChanged;
@@ -20,6 +21,7 @@ namespace MushroomSurvival
         private void Awake()
         {
             ActiveEffects = active.AsReadOnly();
+            character = GetComponent<CharacterStateMachine>();
         }
 
         public override void OnNetworkSpawn()
@@ -48,7 +50,7 @@ namespace MushroomSurvival
         public bool TryEnqueue(EffectRequest request)
         {
             var definition = request.Definition;
-            if (!IsServer || !IsSpawned || definition == null ||
+            if (!IsServer || !IsSpawned || character?.IsEliminated == true || definition == null ||
                 !float.IsFinite(definition.DurationSeconds) || definition.DurationSeconds <= 0f ||
                 !definition.Accepts(request))
             {
@@ -57,6 +59,31 @@ namespace MushroomSurvival
 
             pending.Enqueue(request);
             return true;
+        }
+
+        internal void ClearEffects()
+        {
+            pending.Clear();
+            active.Clear();
+            ActiveEffectsChanged?.Invoke();
+        }
+
+        internal void RemoveSelfEffect(EffectDefinition definition)
+        {
+            if (definition == null)
+                return;
+
+            int count = pending.Count;
+            for (int index = 0; index < count; index++)
+            {
+                var request = pending.Dequeue();
+                if (request.Definition != definition || request.SourcePlayerId != NetworkObjectId)
+                    pending.Enqueue(request);
+            }
+
+            if (active.RemoveAll(effect => effect.Request.Definition == definition &&
+                    effect.Request.SourcePlayerId == NetworkObjectId) > 0)
+                ActiveEffectsChanged?.Invoke();
         }
 
         private void UpdateEffects()

@@ -51,8 +51,12 @@ namespace MushroomSurvival
         protected abstract void OnEffectUpdate(double now);
         protected virtual void OnEffectEnd() { }
 
-        protected bool TryApplyTo(EffectManager target) =>
-            target != null && target.TryEnqueue(new EffectRequest(Definition.Effect, sourcePlayerId: SourcePlayerId));
+        protected bool TryApplyTo(EffectManager target, Vector2 direction = default) =>
+            target != null && target.TryEnqueue(new EffectRequest(Definition.Effect, direction, SourcePlayerId));
+
+        protected static bool IsEligibleTarget(EffectManager target) =>
+            target != null && target.IsSpawned && target.NetworkObject.IsPlayerObject &&
+            (!target.TryGetComponent<CharacterStateMachine>(out var state) || !state.IsEliminated);
 
         private void Tick() => OnEffectUpdate(ticks.ServerTime.Time);
     }

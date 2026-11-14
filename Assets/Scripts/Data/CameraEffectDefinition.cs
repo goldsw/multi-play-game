@@ -10,6 +10,7 @@ namespace MushroomSurvival
         [SerializeField] private AnimationCurve opacity = AnimationCurve.Linear(0f, 1f, 1f, 0f);
 
         public Sprite Overlay => overlay;
+        public override CharacterEffects CharacterFlags => CharacterEffects.ScreenObscured;
         public Color Tint => tint;
         public float OpacityAt(float progress) => Mathf.Clamp01(opacity.Evaluate(progress));
     }

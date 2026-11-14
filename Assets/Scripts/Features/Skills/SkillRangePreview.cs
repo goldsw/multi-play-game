@@ -15,6 +15,7 @@ namespace MushroomSurvival
         private Collider playerCollider;
         private SkillInput input;
         private SkillCaster caster;
+        private CharacterStateMachine character;
         private SkillRangeView view;
 
         private void Awake()
@@ -22,6 +23,7 @@ namespace MushroomSurvival
             playerCollider = GetComponent<Collider>();
             input = GetComponent<SkillInput>();
             caster = GetComponent<SkillCaster>();
+            character = GetComponent<CharacterStateMachine>();
             view = new SkillRangeView(transform, rangeMaterial);
         }
 
@@ -41,7 +43,8 @@ namespace MushroomSurvival
         private void LateUpdate()
         {
             if (!IsSpawned || !IsOwner || input?.IsHeld != true ||
-                skill == null || skill.RangeDisplay == SkillRangeEnum.None)
+                skill == null || skill.RangeDisplay == SkillRangeEnum.None ||
+                character?.AllowsPlayerActions == false)
             {
                 view.Hide();
                 return;
@@ -58,7 +61,7 @@ namespace MushroomSurvival
                 return;
             }
 
-            if (skill.SpawnPrefab is FishProjectile && caster != null)
+            if (skill.SpawnPrefab is SkillProjectile && caster != null)
             {
                 var facing = caster.Facing;
                 var end = origin + new Vector3(facing.x, 0f, facing.y) * skill.SkillRange;

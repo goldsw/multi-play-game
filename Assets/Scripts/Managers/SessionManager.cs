@@ -189,7 +189,10 @@ namespace MushroomSurvival
             if (networkState.Status != SessionStatus.Starting)
                 return;
             if (playerSpawner != null && playerSpawner.AllPlayersReady(networkManager, matchParticipants))
+            {
+                playerSpawner.GetComponent<MatchPlayerStateManager>()?.Begin(networkManager, matchParticipants);
                 networkState.PublishStatus(SessionStatus.Playing);
+            }
             else if (Time.realtimeSinceStartup >= startDeadline)
                 FailSession("Player spawning timed out.");
         }
@@ -207,7 +210,7 @@ namespace MushroomSurvival
                         networkManager.DisconnectClient(clientId);
                         return;
                     }
-                    var slot = slotManager.InitSlot(index, clientId, LobbySettings.DefaultCharacterId);
+                    var slot = slotManager.InitSlot(index, clientId, index);
                     if (networkState.IsSpawned)
                         networkState.PublishSlot(index, slot);
                 }

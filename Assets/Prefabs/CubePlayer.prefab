@@ -29,6 +29,9 @@ GameObject:
   - component: {fileID: 2712517523483621169}
   - component: {fileID: 3857541065616492817}
   - component: {fileID: 4731751389414280172}
+  - component: {fileID: 425954672882745148}
+  - component: {fileID: 4667652896856412067}
+  - component: {fileID: 2056415714897541504}
   m_Layer: 0
   m_Name: CubePlayer
   m_TagString: Untagged
@@ -365,8 +368,13 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillCaster
   ShowTopMostFoldoutHeaderGroup: 1
-  skill: {fileID: 11400000, guid: 11760fd5b7414977acec9748a983a847, type: 2}
-  alternateSkill: {fileID: 11400000, guid: 73c99cf966ef4d8aa16a80ce80713532, type: 2}
+  runnerSkills:
+  - {fileID: 11400000, guid: 73c99cf966ef4d8aa16a80ce80713532, type: 2}
+  - {fileID: 11400000, guid: 11760fd5b7414977acec9748a983a847, type: 2}
+  - {fileID: 11400000, guid: 2ad700e724eb4c57ae5637823f8f3de4, type: 2}
+  - {fileID: 11400000, guid: d0b2bfcb0805482c880c4cecabd721b0, type: 2}
+  - {fileID: 11400000, guid: 1253afbfa5d547b8b549d276279938db, type: 2}
+  taggerSkill: {fileID: 11400000, guid: f0ef672217274999b06dde97a3f299c0, type: 2}
 --- !u!114 &3913910381715139742
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,6 +415,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.EffectIndicator
   material: {fileID: 2100000, guid: d087b4c11fe24eb5acaab3ea8a874702, type: 2}
+  eggHitSound: {fileID: 8300000, guid: 95f3fa0f48fcd2747a8ed2f8de52afe7, type: 3}
 --- !u!114 &4731751389414280172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -422,3 +431,42 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   cameraEffects:
   - {fileID: 11400000, guid: 57b61301443a41d99f33f843a675df5a, type: 2}
+--- !u!114 &425954672882745148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5044aa6c7394bf5a5858ca2c4f271a2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.CharacterStateMachine
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &4667652896856412067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541d27659ed34a9c82f203b30f661ba3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.CharacterAnimator
+  animator: {fileID: 0}
+--- !u!114 &2056415714897541504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 576753732c1341a4b1a578a9e69051a5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.CharacterVisibility
+  definition: {fileID: 11400000, guid: cce989fec72c4cfe93a2ec353614094b, type: 2}

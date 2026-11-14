@@ -14,6 +14,7 @@ namespace MushroomSurvival
         private PlayerMovementBlocker blocker;
         private WallContactResponse wallResponse;
         private MovementEffectSync effects;
+        private CharacterStateMachine character;
         private InputAction moveAction;
 
         public Vector2 Facing { get; private set; } = Vector2.up;
@@ -24,6 +25,7 @@ namespace MushroomSurvival
             blocker = GetComponent<PlayerMovementBlocker>();
             wallResponse = GetComponent<WallContactResponse>();
             effects = GetComponent<MovementEffectSync>();
+            character = GetComponent<CharacterStateMachine>();
         }
 
         public void Configure(InputActionAsset actions)
@@ -88,24 +90,23 @@ namespace MushroomSurvival
 
             var effectState = effects != null ? effects.State : MovementEffectState.Neutral;
             var velocity = body.linearVelocity;
-            var planarVelocity = Vector2.zero;
-            if (!effectState.Stunned)
+            if (effectState.Stunned || character?.StopsMovement == true)
             {
-                var desiredVelocity = effectState.ForcedPlanarVelocity;
-                if (!effectState.HasForcedMovement)
-                {
-                    var input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
-                    if (input.sqrMagnitude > 0.01f)
-                        Facing = input.normalized;
-                    desiredVelocity = input * (MovementSettings.Speed * effectState.SpeedMultiplier);
-                }
-
-                planarVelocity = Vector2.MoveTowards(
-                    new Vector2(velocity.x, velocity.z),
-                    desiredVelocity,
-                    MovementSettings.Acceleration * Time.fixedDeltaTime);
+                body.linearVelocity = new Vector3(0f, velocity.y, 0f);
+                return;
             }
 
+            var desiredVelocity = effectState.ForcedPlanarVelocity;
+            if (!effectState.HasForcedMovement)
+            {
+                var input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
+                if (input.sqrMagnitude > 0.01f)
+                    Facing = input.normalized;
+                desiredVelocity = input * (MovementSettings.Speed * effectState.SpeedMultiplier);
+            }
+
+            var planarVelocity = Vector2.MoveTowards(new Vector2(velocity.x, velocity.z), desiredVelocity,
+                MovementSettings.Acceleration * Time.fixedDeltaTime);
             var targetVelocity = blocker.LimitHorizontalVelocity(
                 new Vector3(planarVelocity.x, velocity.y, planarVelocity.y));
             var movementForce = (targetVelocity - velocity) * (body.mass / Time.fixedDeltaTime);

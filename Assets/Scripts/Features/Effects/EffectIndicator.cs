@@ -7,17 +7,24 @@ namespace MushroomSurvival
     public sealed class EffectIndicator : MonoBehaviour
     {
         [SerializeField] private Material material;
+        [SerializeField] private AudioClip eggHitSound;
 
         private EffectBroadcast broadcast;
+        private CharacterStateMachine character;
         private Collider body;
         private SkillRangeView view;
         private double visibleUntil;
 
-        public void Configure(Material indicatorMaterial) => material = indicatorMaterial;
+        public void Configure(Material indicatorMaterial, AudioClip hitSound)
+        {
+            material = indicatorMaterial;
+            eggHitSound = hitSound;
+        }
 
         private void Awake()
         {
             broadcast = GetComponent<EffectBroadcast>();
+            character = GetComponent<CharacterStateMachine>();
             body = GetComponent<Collider>();
             view = new SkillRangeView(transform, material, "Status Effect Indicator");
         }
@@ -35,13 +42,16 @@ namespace MushroomSurvival
         {
             if (applied.EndsAtServerTime > visibleUntil)
                 visibleUntil = applied.EndsAtServerTime;
+            if (applied.EffectId == 1 && broadcast.IsOwner && eggHitSound != null)
+                AudioSource.PlayClipAtPoint(eggHitSound, transform.position, 0.75f);
         }
 
         private void LateUpdate()
         {
-            if (!broadcast.IsSpawned || broadcast.ServerTime >= visibleUntil)
+            if (!broadcast.IsSpawned || broadcast.ServerTime >= visibleUntil ||
+                (character != null && (character.IsEliminated ||
+                    (character.Effects & CharacterEffects.Invisible) != 0)))
             {
-                visibleUntil = 0d;
                 view.Hide();
                 return;
             }

@@ -13,6 +13,17 @@ MonoBehaviour:
   m_Name: SK006
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillDefinition
   skillId: SK006
+  skillIcon: {fileID: 21300000, guid: c3187e789377470b9ea401ca2be066f9, type: 3}
+  skillIcon: {fileID: 0}
   skillRangeEnum: 3
   skillRange: 1
   targetCircleRadius: 0.75
+  cooldownSeconds: 20
+  charges: 3
+  effect: {fileID: 11400000, guid: 2f056b100ec549b0aff66500a9c41095, type: 2}
+  spawnPrefab: {fileID: 8529854365179653295, guid: 5e9c36e3f8e17ce41bb069e5d878be3d, type: 3}
+  objectLimit: 3
+  armDelay: 0.8
+  objectLifetime: 0
+  projectileSpeed: 0
+  cooldownAfterEffect: 0

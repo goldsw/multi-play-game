@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MushroomSurvival
 {
-    public sealed class DuckEgg : EffectObject
+    public class DuckEgg : EffectObject
     {
         private const float ContactHalfHeight = 0.15f;
         [SerializeField] private Transform shell;
@@ -18,7 +18,7 @@ namespace MushroomSurvival
 
         public void Configure(Transform visual) => shell = visual;
 
-        private void Awake() => shellScale = shell.localScale;
+        protected void Awake() => shellScale = shell.localScale;
 
         internal override bool TryGetSpawnPose(SkillDefinition skill, Collider caster, Collider floor,
             Vector3 direction, out Vector3 position, out Quaternion rotation)
@@ -27,7 +27,7 @@ namespace MushroomSurvival
             var ray = new Ray(bounds.center, Vector3.down);
             position = default;
             rotation = Quaternion.identity;
-            if (floor == null || skill.ObjectLifetime <= skill.ArmDelay ||
+            if (floor == null || (skill.ObjectLifetime > 0f && skill.ObjectLifetime <= skill.ArmDelay) ||
                 !floor.Raycast(ray, out var hit, bounds.extents.y + 0.2f))
                 return false;
 
@@ -51,7 +51,7 @@ namespace MushroomSurvival
         protected override void OnEffectStart(double now)
         {
             armsAt = now + Definition.ArmDelay;
-            expiresAt = now + Definition.ObjectLifetime;
+            expiresAt = Definition.ObjectLifetime > 0f ? now + Definition.ObjectLifetime : double.PositiveInfinity;
         }
 
         protected override void OnEffectUpdate(double now)
@@ -85,7 +85,7 @@ namespace MushroomSurvival
             {
                 var collider = overlaps[index];
                 var candidate = collider.GetComponentInParent<EffectManager>();
-                if (candidate == null || !candidate.IsSpawned || !candidate.NetworkObject.IsPlayerObject)
+                if (!IsEligibleTarget(candidate))
                     continue;
 
                 var offset = collider.ClosestPoint(origin) - origin;

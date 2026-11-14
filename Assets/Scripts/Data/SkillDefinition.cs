@@ -26,6 +26,7 @@ namespace MushroomSurvival
         [SerializeField, Min(0f)] private float armDelay;
         [SerializeField, Min(0f)] private float objectLifetime;
         [SerializeField, Min(0f)] private float projectileSpeed;
+        [SerializeField] private bool cooldownAfterEffect;
 
         public string SkillId => skillId;
         public Sprite SkillIcon => skillIcon;
@@ -40,5 +41,6 @@ namespace MushroomSurvival
         public float ArmDelay => armDelay;
         public float ObjectLifetime => objectLifetime;
         public float ProjectileSpeed => projectileSpeed;
+        public bool CooldownAfterEffect => cooldownAfterEffect;
     }
 }

@@ -35,6 +35,7 @@ namespace MushroomSurvival
 
             var spawned = new List<NetworkObject>();
             var availablePoints = new List<Transform>(spawnPoints);
+            var lobbySlots = lobby != null ? lobby.GetSlots() : Array.Empty<LobbySlotData>();
             try
             {
                 for (var slot = 0; slot < participants.Count; slot++)
@@ -49,7 +50,11 @@ namespace MushroomSurvival
                     spawned.Add(player);
                     SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
                     if (player.TryGetComponent<SkillCaster>(out var caster))
-                        caster.Initialize(effectObjects, lobby, clientId == NetworkManager.ServerClientId);
+                    {
+                        int lobbyIndex = Array.FindIndex(lobbySlots, entry => entry.Occupied && entry.ClientId == clientId);
+                        int character = lobbyIndex >= 0 ? lobbySlots[lobbyIndex].CharacterId : LobbySettings.DefaultCharacterId;
+                        caster.Initialize(effectObjects, lobby, character);
+                    }
                     player.SpawnAsPlayerObject(clientId, destroyWithScene: true);
                 }
             }

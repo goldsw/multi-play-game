@@ -17,6 +17,7 @@ namespace MushroomSurvival
         public int EffectId => effectId;
         public float DurationSeconds => durationSeconds;
         public EffectReapplication Reapplication => reapplication;
+        public virtual CharacterEffects CharacterFlags => CharacterEffects.None;
 
         internal virtual bool Accepts(EffectRequest request) => true;
     }

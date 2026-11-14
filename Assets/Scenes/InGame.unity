@@ -254,6 +254,7 @@ GameObject:
   - component: {fileID: 586789726}
   - component: {fileID: 586789725}
   - component: {fileID: 586789728}
+  - component: {fileID: 586789729}
   m_Layer: 0
   m_Name: InGameComposition
   m_TagString: Untagged
@@ -325,6 +326,18 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.EffectObjectManager
   floor: {fileID: 1772083057}
+--- !u!114 &586789729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586789724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca8427a2dc904fbfa5399d2d8320cb07, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.MatchPlayerStateManager
 --- !u!1 &614874004
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,3 @@
-using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,6 +10,8 @@ namespace MushroomSurvival
         private GameObject canvas;
         private SkillCaster caster;
         private NetworkObject boundPlayer;
+        private SkillDefinition boundSkill;
+        private CharacterStateMachine character;
 
         public CooldownSlot SkillSlot { get; private set; }
         public CooldownSlot ItemSlot { get; private set; }
@@ -36,6 +37,8 @@ namespace MushroomSurvival
                     ItemSlot.Unequip();
                     caster = null;
                     boundPlayer = null;
+                    boundSkill = null;
+                    character = null;
                     canvas.SetActive(false);
                 }
                 return;
@@ -45,24 +48,38 @@ namespace MushroomSurvival
             {
                 boundPlayer = player;
                 caster = player.GetComponent<SkillCaster>();
-                SkillSlot.Init(caster?.Skill?.SkillIcon);
+                character = player.GetComponent<CharacterStateMachine>();
                 canvas.SetActive(true);
+            }
+            SkillSlot.SetLocked(character?.AllowsPlayerActions == false);
+            ItemSlot.SetLocked(character?.AllowsItemUse == false);
+            var currentSkill = caster?.Skill;
+            if (currentSkill != boundSkill)
+            {
+                boundSkill = currentSkill;
+                SkillSlot.Init(currentSkill?.SkillIcon);
             }
 
             double now = network.ServerTime.Time;
-            if (caster != null && caster.Skill != null && SkillSlot.IsEquipped)
+            if (currentSkill != null)
             {
-                double next = double.PositiveInfinity;
-                for (int charge = 0; charge < caster.Skill.Charges; charge++)
+                bool active = caster.ActiveEndsAt > now && currentSkill.CooldownAfterEffect;
+                float gauge = 0f;
+                if (active)
+                    gauge = (float)((caster.ActiveEndsAt - now) / currentSkill.Effect.DurationSeconds);
+                else
                 {
-                    double end = caster.GetRechargeEnd(charge);
-                    if (end > now)
-                        next = Math.Min(next, end);
+                    for (int charge = 0; charge < currentSkill.Charges; charge++)
+                    {
+                        double remaining = caster.GetRechargeEnd(charge) - now;
+                        gauge += currentSkill.CooldownSeconds > 0f
+                            ? 1f - Mathf.Clamp01((float)(remaining / currentSkill.CooldownSeconds)) : 1f;
+                    }
+                    gauge /= Mathf.Max(1, currentSkill.Charges);
                 }
-                SkillSlot.Timer.SetCooldown(double.IsPositiveInfinity(next) ? 0d : next, caster.Skill.CooldownSeconds);
+                SkillSlot.Timer.SetSkillGauge(gauge, active);
             }
 
-            SkillSlot.Timer.Render(now);
             ItemSlot.Timer.Render(now);
         }
     }

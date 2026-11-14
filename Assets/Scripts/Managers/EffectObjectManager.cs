@@ -51,6 +51,16 @@ namespace MushroomSurvival
                 PublishCount(instance.CasterId, instance.SkillId);
         }
 
+        public void DespawnOwned(ulong casterId, string skillId = null)
+        {
+            for (int index = active.Count - 1; index >= 0; index--)
+            {
+                var instance = active[index];
+                if (instance.CasterId == casterId && (skillId == null || instance.SkillId == skillId))
+                    instance.NetworkObject.Despawn();
+            }
+        }
+
         private int CountFor(ulong casterId, string skillId)
         {
             int count = 0;

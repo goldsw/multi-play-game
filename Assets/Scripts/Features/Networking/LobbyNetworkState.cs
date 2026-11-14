@@ -22,6 +22,21 @@ namespace MushroomSurvival
             }
         }
         public SessionStatus Status => status.Value;
+        public int LocalCharacterId
+        {
+            get
+            {
+                if (IsSpawned)
+                {
+                    foreach (var slot in slots)
+                    {
+                        if (slot.Occupied && slot.ClientId == NetworkManager.LocalClientId)
+                            return slot.CharacterId;
+                    }
+                }
+                return LobbySettings.DefaultCharacterId;
+            }
+        }
 
         private void Awake() => slots = new NetworkList<LobbySlotData>();
 
@@ -68,6 +83,24 @@ namespace MushroomSurvival
             if (!IsServer)
                 throw new InvalidOperationException("Only the host can publish lobby state.");
             status.Value = phase;
+        }
+
+        public void SelectCharacter(int characterId)
+        {
+            if (IsSpawned && IsClient && Status == SessionStatus.Lobby)
+                SelectCharacterRpc(characterId);
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void SelectCharacterRpc(int characterId, RpcParams rpc = default)
+        {
+            if (Status != SessionStatus.Lobby || !Enum.IsDefined(typeof(RunnerCharacter), characterId))
+                return;
+
+            ulong sender = rpc.Receive.SenderClientId;
+            int index = slotManager.GetSlotIndex(sender);
+            if (index >= 0 && slots[index].Occupied && slots[index].ClientId == sender)
+                PublishSlot(index, slotManager.InitSlot(index, sender, characterId));
         }
 
         private void OnSlotChanged(NetworkListEvent<LobbySlotData> change) => Changed?.Invoke();

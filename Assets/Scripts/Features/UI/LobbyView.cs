@@ -11,6 +11,7 @@ namespace MushroomSurvival
         public event Action StartRequested;
 
         private SessionData state;
+        private LobbyNetworkState networkState;
         private bool joinPopupOpen;
         private bool lastLobbyWasHost = true;
         private string joinCode = string.Empty;
@@ -19,6 +20,9 @@ namespace MushroomSurvival
         private GUIStyle textStyle;
         private GUIStyle buttonStyle;
         private GUIStyle inputStyle;
+        private static readonly string[] CharacterNames = { "고양이", "오리", "강아지", "토끼", "다람쥐" };
+
+        public void ConfigureCharacterSelection(LobbyNetworkState lobby) => networkState = lobby;
 
         public void Show(SessionData sessionState)
         {
@@ -47,6 +51,8 @@ namespace MushroomSurvival
             {
                 DrawStatus();
                 DrawRoomControls();
+                if (state.Status == SessionStatus.Lobby && !joinPopupOpen && networkState != null && networkState.IsSpawned)
+                    DrawCharacterSelection();
                 if (joinPopupOpen)
                     DrawJoinPopup();
             }
@@ -57,6 +63,14 @@ namespace MushroomSurvival
             }
         }
 
+        private void DrawCharacterSelection()
+        {
+            int selected = networkState.LocalCharacterId;
+            int choice = GUI.SelectionGrid(new Rect(380, 651, 520, 46), selected, CharacterNames, 5, buttonStyle);
+            if (choice != selected)
+                networkState.SelectCharacter(choice);
+        }
+
         private void DrawStatus()
         {
             GUI.Box(new Rect(20, 20, 420, 92), GUIContent.none);
@@ -65,7 +79,7 @@ namespace MushroomSurvival
                 SessionStatus.Lobby when !string.IsNullOrEmpty(state.JoinCode) => "방 코드  " + state.JoinCode,
                 SessionStatus.LoadingInGame => "경기장 로딩 중",
                 SessionStatus.Starting => "플레이어 준비 중",
-                SessionStatus.Playing => "경기 중",
+                SessionStatus.Playing => MatchHeading(),
                 _ => state.Status.ToString()
             };
 
@@ -78,6 +92,14 @@ namespace MushroomSurvival
                 GUI.Box(new Rect(20, 124, 420, 82), GUIContent.none);
                 GUI.Label(new Rect(36, 132, 388, 66), state.Message, textStyle);
             }
+        }
+
+        private string MatchHeading()
+        {
+            var player = networkState != null ? networkState.NetworkManager.LocalClient?.PlayerObject : null;
+            if (player == null || !player.TryGetComponent<SkillCaster>(out var caster))
+                return "경기 중";
+            return caster.IsTagger ? "경기 중 · 술래" : "경기 중 · 도망자";
         }
 
         private void DrawRoomControls()

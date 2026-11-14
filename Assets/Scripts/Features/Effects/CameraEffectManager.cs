@@ -11,6 +11,7 @@ namespace MushroomSurvival
         [SerializeField] private CameraEffectDefinition[] cameraEffects;
 
         private EffectBroadcast broadcast;
+        private CharacterStateMachine character;
         private CameraEffectDefinition active;
         private GameObject overlay;
         private Image image;
@@ -18,7 +19,11 @@ namespace MushroomSurvival
 
         public void Configure(CameraEffectDefinition[] definitions) => cameraEffects = definitions;
 
-        private void Awake() => broadcast = GetComponent<EffectBroadcast>();
+        private void Awake()
+        {
+            broadcast = GetComponent<EffectBroadcast>();
+            character = GetComponent<CharacterStateMachine>();
+        }
 
         public override void OnNetworkSpawn()
         {
@@ -71,7 +76,7 @@ namespace MushroomSurvival
                 return;
 
             double remaining = endsAt - broadcast.ServerTime;
-            if (remaining <= 0d)
+            if (remaining <= 0d || character?.IsEliminated == true)
             {
                 EndEffect();
                 return;

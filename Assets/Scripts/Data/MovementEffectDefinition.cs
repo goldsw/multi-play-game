@@ -17,6 +17,14 @@ namespace MushroomSurvival
 
         public MovementEffectKind Kind => kind;
         public float Amount => amount;
+        public override CharacterEffects CharacterFlags => kind switch
+        {
+            MovementEffectKind.Stun => CharacterEffects.Stunned,
+            MovementEffectKind.ForcedMovement => CharacterEffects.ForcedMovement,
+            MovementEffectKind.SpeedMultiplier when amount < 1f => CharacterEffects.Slowed,
+            MovementEffectKind.SpeedMultiplier when amount > 1f => CharacterEffects.Boosted,
+            _ => CharacterEffects.None
+        };
 
         internal override bool Accepts(EffectRequest request) => kind switch
         {
