@@ -90,7 +90,8 @@ namespace MushroomSurvival
 
             var effectState = effects != null ? effects.State : MovementEffectState.Neutral;
             var velocity = body.linearVelocity;
-            if (effectState.Stunned || character?.StopsMovement == true)
+            if (effectState.Stunned || character?.IsEliminated == true ||
+                (!effectState.HasForcedMovement && character?.StopsMovement == true))
             {
                 body.linearVelocity = new Vector3(0f, velocity.y, 0f);
                 return;

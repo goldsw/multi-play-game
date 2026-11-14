@@ -6,7 +6,8 @@ namespace MushroomSurvival
     {
         Stun,
         SpeedMultiplier,
-        ForcedMovement
+        ForcedMovement,
+        Slip
     }
 
     [CreateAssetMenu(menuName = "Mushroom Survival/Effects/Movement Effect")]
@@ -21,6 +22,7 @@ namespace MushroomSurvival
         {
             MovementEffectKind.Stun => CharacterEffects.Stunned,
             MovementEffectKind.ForcedMovement => CharacterEffects.ForcedMovement,
+            MovementEffectKind.Slip => CharacterEffects.Stunned | CharacterEffects.ForcedMovement,
             MovementEffectKind.SpeedMultiplier when amount < 1f => CharacterEffects.Slowed,
             MovementEffectKind.SpeedMultiplier when amount > 1f => CharacterEffects.Boosted,
             _ => CharacterEffects.None
@@ -30,7 +32,7 @@ namespace MushroomSurvival
         {
             MovementEffectKind.Stun => true,
             MovementEffectKind.SpeedMultiplier => float.IsFinite(amount) && amount > 0f,
-            MovementEffectKind.ForcedMovement => float.IsFinite(amount) && amount > 0f &&
+            MovementEffectKind.ForcedMovement or MovementEffectKind.Slip => float.IsFinite(amount) && amount > 0f &&
                 float.IsFinite(request.Direction.sqrMagnitude) && request.Direction.sqrMagnitude > 0f,
             _ => false
         };

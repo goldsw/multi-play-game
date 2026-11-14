@@ -30,6 +30,7 @@ namespace MushroomSurvival.Editor
             var fishPrefab = SkillSceneSetup.PrepareFish();
             var dogPrefab = SkillSceneSetup.PrepareDog();
             var taggerPrefab = SkillSceneSetup.PrepareTaggerTrap();
+            var itemPrefabs = ItemSceneSetup.PreparePrefabs();
             if (File.Exists(ScenePath))
             {
                 var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
@@ -46,7 +47,9 @@ namespace MushroomSurvival.Editor
                 cachedPrefab.GetComponent<Renderer>().sharedMaterial =
                     GetMaterial(CubeMaterialPath, new Color(0.15f, 0.6f, 0.9f));
                 PrefabUtility.SavePrefabAsset(cachedPrefab);
-                var cachedRegistry = GetPrefabRegistry(cachedPrefab, eggPrefab, fishPrefab, dogPrefab, taggerPrefab);
+                var cachedRegistry = GetPrefabRegistry(
+                    new[] { cachedPrefab, eggPrefab, fishPrefab, dogPrefab, taggerPrefab }
+                        .Concat(itemPrefabs).ToArray());
                 var loadedScene = SceneManager.GetSceneByPath(ScenePath);
                 var wasLoaded = loadedScene.IsValid() && loadedScene.isLoaded;
                 if (!wasLoaded)
@@ -82,7 +85,8 @@ namespace MushroomSurvival.Editor
             ConfigurePlayer(cube);
             var playerPrefab = PrefabUtility.SaveAsPrefabAsset(cube, PrefabPath);
             Object.DestroyImmediate(cube);
-            var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab, fishPrefab, dogPrefab, taggerPrefab);
+            var prefabs = GetPrefabRegistry(new[] { playerPrefab, eggPrefab, fishPrefab, dogPrefab, taggerPrefab }
+                .Concat(itemPrefabs).ToArray());
 
             var previousScene = SceneManager.GetActiveScene();
             var scene = EditorSceneManager.NewScene(
@@ -203,6 +207,7 @@ namespace MushroomSurvival.Editor
             if (!player.TryGetComponent<PlayerPositionCorrection>(out _))
                 player.AddComponent<PlayerPositionCorrection>();
             SkillSceneSetup.ConfigurePlayer(player, input);
+            ItemSceneSetup.ConfigurePlayer(player, input);
         }
 
         private static void ConfigureLobbyPreview(Scene scene)

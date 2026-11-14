@@ -255,6 +255,9 @@ GameObject:
   - component: {fileID: 586789725}
   - component: {fileID: 586789728}
   - component: {fileID: 586789729}
+  - component: {fileID: 586789732}
+  - component: {fileID: 586789731}
+  - component: {fileID: 586789730}
   m_Layer: 0
   m_Name: InGameComposition
   m_TagString: Untagged
@@ -338,6 +341,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8427a2dc904fbfa5399d2d8320cb07, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.MatchPlayerStateManager
+--- !u!114 &586789730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586789724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10aeee9294578064e8e9b9510158b20c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemWorld
+  map: {fileID: 586789732}
+  bucket: {fileID: 7369732091944724038, guid: 399086475b2b60b44aaee29de85bb5f6, type: 3}
+  puddle: {fileID: 5015030574636174573, guid: f4dea00eaeedfbc4eb7778beba57f6dd, type: 3}
+  apple: {fileID: 1905723081353859316, guid: 5b908da347313c2488c99b4fa361a30f, type: 3}
+  banana: {fileID: 5307936659137329291, guid: 2b36f86939145e740a95cd38a30d7b7e, type: 3}
+  stun: {fileID: 11400000, guid: 067fefc1fffcf97438a857b0de826fc6, type: 2}
+  slow: {fileID: 11400000, guid: fff42bf6e36aa2b4bbf1bac6a775c024, type: 2}
+  slip: {fileID: 11400000, guid: 229bfef5e93d3b444a65eda481617a70, type: 2}
+--- !u!114 &586789731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586789724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1d934c8750a1cc419f71f8055b22166, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.MatchItems
+  boxSpawnerPrefab: {fileID: 7077879923738168218, guid: 2aef25b63121c024a867e4af26a2293a, type: 3}
+  map: {fileID: 586789732}
+--- !u!114 &586789732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586789724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc32fbfdce0241bfb732e330bfa8db1e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemMap
+  prototypeGround: {fileID: 1772083057}
+  tileSize: 1
 --- !u!1 &614874004
 GameObject:
   m_ObjectHideFlags: 0
@@ -509,6 +560,7 @@ GameObject:
   - component: {fileID: 996044750}
   - component: {fileID: 996044749}
   - component: {fileID: 996044748}
+  - component: {fileID: 996044752}
   m_Layer: 0
   m_Name: NorthWall
   m_TagString: Untagged
@@ -609,6 +661,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &996044752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996044747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
+  kind: 2
 --- !u!1 &1622186274
 GameObject:
   m_ObjectHideFlags: 0
@@ -621,6 +686,7 @@ GameObject:
   - component: {fileID: 1622186277}
   - component: {fileID: 1622186276}
   - component: {fileID: 1622186275}
+  - component: {fileID: 1622186279}
   m_Layer: 0
   m_Name: WestWall
   m_TagString: Untagged
@@ -721,6 +787,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1622186279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1622186274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
+  kind: 2
 --- !u!1 &1772083055
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,6 +812,7 @@ GameObject:
   - component: {fileID: 1772083058}
   - component: {fileID: 1772083057}
   - component: {fileID: 1772083056}
+  - component: {fileID: 1772083060}
   m_Layer: 0
   m_Name: ArenaFloor
   m_TagString: Untagged
@@ -833,6 +913,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1772083060
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1772083055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
+  kind: 0
 --- !u!1 &1875850597
 GameObject:
   m_ObjectHideFlags: 0
@@ -876,6 +969,7 @@ GameObject:
   - component: {fileID: 1912827132}
   - component: {fileID: 1912827131}
   - component: {fileID: 1912827130}
+  - component: {fileID: 1912827134}
   m_Layer: 0
   m_Name: SouthWall
   m_TagString: Untagged
@@ -976,6 +1070,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1912827134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1912827129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
+  kind: 2
 --- !u!1 &2008327411
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,6 +1095,7 @@ GameObject:
   - component: {fileID: 2008327414}
   - component: {fileID: 2008327413}
   - component: {fileID: 2008327412}
+  - component: {fileID: 2008327416}
   m_Layer: 0
   m_Name: EastWall
   m_TagString: Untagged
@@ -1088,6 +1196,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2008327416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2008327411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
+  kind: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

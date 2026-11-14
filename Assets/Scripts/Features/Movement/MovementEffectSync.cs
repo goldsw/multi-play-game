@@ -62,6 +62,7 @@ namespace MushroomSurvival
                         boostMultiplier = Mathf.Max(boostMultiplier, movement.Amount);
                         break;
                     case MovementEffectKind.ForcedMovement:
+                    case MovementEffectKind.Slip:
                         forcedVelocity = request.Direction * movement.Amount;
                         break;
                 }

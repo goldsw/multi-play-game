@@ -51,7 +51,7 @@ namespace MushroomSurvival
         {
             var definition = request.Definition;
             if (!IsServer || !IsSpawned || character?.IsEliminated == true || definition == null ||
-                !float.IsFinite(definition.DurationSeconds) || definition.DurationSeconds <= 0f ||
+                !float.IsFinite(request.DurationSeconds) || request.DurationSeconds <= 0f ||
                 !definition.Accepts(request))
             {
                 return false;
@@ -68,7 +68,9 @@ namespace MushroomSurvival
             ActiveEffectsChanged?.Invoke();
         }
 
-        internal void RemoveSelfEffect(EffectDefinition definition)
+        internal void RemoveSelfEffect(EffectDefinition definition) => RemoveEffect(definition, NetworkObjectId);
+
+        internal void RemoveEffect(EffectDefinition definition, ulong sourcePlayerId)
         {
             if (definition == null)
                 return;
@@ -77,12 +79,12 @@ namespace MushroomSurvival
             for (int index = 0; index < count; index++)
             {
                 var request = pending.Dequeue();
-                if (request.Definition != definition || request.SourcePlayerId != NetworkObjectId)
+                if (request.Definition != definition || request.SourcePlayerId != sourcePlayerId)
                     pending.Enqueue(request);
             }
 
             if (active.RemoveAll(effect => effect.Request.Definition == definition &&
-                    effect.Request.SourcePlayerId == NetworkObjectId) > 0)
+                    effect.Request.SourcePlayerId == sourcePlayerId) > 0)
                 ActiveEffectsChanged?.Invoke();
         }
 
@@ -112,9 +114,10 @@ namespace MushroomSurvival
                     active.RemoveAll(effect => effect.Request.Definition == definition);
                 }
 
-                var applied = new ActiveEffect(request, now + definition.DurationSeconds);
+                var applied = new ActiveEffect(request, now + request.DurationSeconds);
                 active.Add(applied);
-                Applied?.Invoke(applied);
+                if (request.Notify)
+                    Applied?.Invoke(applied);
             }
 
             if (changed)

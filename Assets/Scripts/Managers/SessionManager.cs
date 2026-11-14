@@ -190,6 +190,7 @@ namespace MushroomSurvival
                 return;
             if (playerSpawner != null && playerSpawner.AllPlayersReady(networkManager, matchParticipants))
             {
+                playerSpawner.GetComponent<MatchItems>()?.Begin(networkState);
                 playerSpawner.GetComponent<MatchPlayerStateManager>()?.Begin(networkManager, matchParticipants);
                 networkState.PublishStatus(SessionStatus.Playing);
             }

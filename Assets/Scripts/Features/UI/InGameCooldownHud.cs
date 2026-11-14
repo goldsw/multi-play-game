@@ -12,6 +12,7 @@ namespace MushroomSurvival
         private NetworkObject boundPlayer;
         private SkillDefinition boundSkill;
         private CharacterStateMachine character;
+        private ItemSlotView itemView;
 
         public CooldownSlot SkillSlot { get; private set; }
         public CooldownSlot ItemSlot { get; private set; }
@@ -20,7 +21,7 @@ namespace MushroomSurvival
         {
             network = manager;
             lobby = state;
-            canvas = CooldownHudLayout.Create(transform, out var skill, out var item);
+            canvas = CooldownHudLayout.Create(transform, out var skill, out var item, out itemView);
             SkillSlot = skill;
             ItemSlot = item;
             canvas.SetActive(false);
@@ -35,6 +36,7 @@ namespace MushroomSurvival
                 {
                     SkillSlot.Unequip();
                     ItemSlot.Unequip();
+                    itemView.Bind(null);
                     caster = null;
                     boundPlayer = null;
                     boundSkill = null;
@@ -49,6 +51,7 @@ namespace MushroomSurvival
                 boundPlayer = player;
                 caster = player.GetComponent<SkillCaster>();
                 character = player.GetComponent<CharacterStateMachine>();
+                itemView.Bind(player.GetComponent<PlayerItemInventory>());
                 canvas.SetActive(true);
             }
             SkillSlot.SetLocked(character?.AllowsPlayerActions == false);
@@ -81,6 +84,7 @@ namespace MushroomSurvival
             }
 
             ItemSlot.Timer.Render(now);
+            itemView.Render();
         }
     }
 }

@@ -105,6 +105,7 @@ namespace MushroomSurvival.Editor
             }
             spawner.Configure(playerPrefab, points);
             SkillSceneSetup.ConfigureScene(game, root);
+            ItemSceneSetup.ConfigureScene(game, root);
             if (!root.TryGetComponent<PlayerCollisionManager>(out _))
                 root.AddComponent<PlayerCollisionManager>();
 
