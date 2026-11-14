@@ -65,13 +65,11 @@ namespace MushroomSurvival.Editor
             preview.Configure(definition, AssetDatabase.LoadAssetAtPath<Material>(RangeMaterialPath));
         }
 
-        public static void ConfigureScene(Scene scene)
+        public static void ConfigureScene(Scene scene, GameObject composition)
         {
-            var roots = scene.GetRootGameObjects();
-            var bootstrap = roots.Single(root => root.GetComponent<LobbyBootstrap>() != null);
-            var floor = roots.Single(root => root.name == "ArenaFloor").GetComponent<Collider>();
-            if (!bootstrap.TryGetComponent<EffectObjectManager>(out var manager))
-                manager = bootstrap.AddComponent<EffectObjectManager>();
+            var floor = scene.GetRootGameObjects().Single(root => root.name == "ArenaFloor").GetComponent<Collider>();
+            if (!composition.TryGetComponent<EffectObjectManager>(out var manager))
+                manager = composition.AddComponent<EffectObjectManager>();
             manager.Configure(floor);
         }
     }

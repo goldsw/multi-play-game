@@ -11,6 +11,7 @@ namespace MushroomSurvival
         private NetworkManager networkManager;
         private LobbyNetworkState networkState;
         private NetworkPlayerSpawner playerSpawner;
+        private InGameSceneLoader sceneLoader;
         private ISessionConnector connector;
         private SlotManager slotManager;
         private bool busy;
@@ -18,6 +19,7 @@ namespace MushroomSurvival
         private string joinCode = "";
         private ulong[] matchParticipants = Array.Empty<ulong>();
         private float startDeadline;
+        private bool inGameLoaded;
 
         public SessionData State { get; private set; } = new(SessionStatus.Offline);
         public event Action<SessionData> StateChanged;
@@ -25,15 +27,16 @@ namespace MushroomSurvival
         public void Initialize(
             NetworkManager network,
             LobbyNetworkState state,
-            NetworkPlayerSpawner spawner,
+            InGameSceneLoader loader,
             ISessionConnector sessionConnector,
             SlotManager slots)
         {
             networkManager = network;
             networkState = state;
-            playerSpawner = spawner;
+            sceneLoader = loader;
             connector = sessionConnector;
             slotManager = slots;
+            sceneLoader.LoadCompleted += OnInGameLoaded;
             networkState.Changed += RefreshState;
             networkManager.OnClientConnectedCallback += OnClientConnected;
             networkManager.OnClientDisconnectCallback += OnClientDisconnected;
@@ -103,6 +106,7 @@ namespace MushroomSurvival
             }
             if (!networkManager.IsListening || !networkManager.IsConnectedClient)
                 throw new InvalidOperationException("The session did not start networking.");
+            sceneLoader.Observe();
             SetState(networkState.IsSpawned ? networkState.Status : SessionStatus.Connecting, notice);
         }
 
@@ -129,10 +133,39 @@ namespace MushroomSurvival
                 return;
             matchParticipants = networkState.GetSlots().Where(slot => slot.Occupied)
                 .Select(slot => slot.ClientId).ToArray();
+            inGameLoaded = false;
+            startDeadline = Time.realtimeSinceStartup + 45f;
+            networkState.PublishStatus(SessionStatus.LoadingInGame);
+            if (!sceneLoader.TryLoad(out var error))
+                FailSession(error);
+        }
+
+        private void OnInGameLoaded(SceneEvent sceneEvent)
+        {
+            if (busy || networkState.Status != SessionStatus.LoadingInGame)
+                return;
+            var completed = sceneEvent.ClientsThatCompleted;
+            inGameLoaded = completed != null && matchParticipants.All(completed.Contains);
+            if (!inGameLoaded)
+                startDeadline = Time.realtimeSinceStartup;
+        }
+
+        private void SpawnInGamePlayers()
+        {
             networkState.PublishStatus(SessionStatus.Starting);
             startDeadline = Time.realtimeSinceStartup + 15f;
             try
             {
+                var scene = sceneLoader.LoadedScene;
+                if (!scene.IsValid() || !scene.isLoaded)
+                    throw new InvalidOperationException("The InGame scene is unavailable.");
+                playerSpawner = scene.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<NetworkPlayerSpawner>())
+                    .SingleOrDefault();
+                if (playerSpawner == null)
+                    throw new InvalidOperationException("The InGame scene has no player spawner.");
+                playerSpawner.GetComponent<PlayerCollisionManager>()?.Configure(networkManager, networkState);
+                playerSpawner.InitializeSkills(playerSpawner.GetComponent<EffectObjectManager>(), networkState);
                 playerSpawner.SpawnPlayers(networkManager, matchParticipants);
             }
             catch (Exception exception)
@@ -143,10 +176,19 @@ namespace MushroomSurvival
 
         private void Update()
         {
-            if (networkManager == null || !networkManager.IsHost || !networkState.IsSpawned ||
-                networkState.Status != SessionStatus.Starting)
+            if (busy || networkManager == null || !networkManager.IsHost || !networkState.IsSpawned)
                 return;
-            if (playerSpawner.AllPlayersReady(networkManager, matchParticipants))
+            if (networkState.Status == SessionStatus.LoadingInGame)
+            {
+                if (inGameLoaded)
+                    SpawnInGamePlayers();
+                else if (Time.realtimeSinceStartup >= startDeadline)
+                    FailSession("A participant did not finish loading the InGame scene.");
+                return;
+            }
+            if (networkState.Status != SessionStatus.Starting)
+                return;
+            if (playerSpawner != null && playerSpawner.AllPlayersReady(networkManager, matchParticipants))
                 networkState.PublishStatus(SessionStatus.Playing);
             else if (Time.realtimeSinceStartup >= startDeadline)
                 FailSession("Player spawning timed out.");
@@ -154,6 +196,8 @@ namespace MushroomSurvival
 
         private void OnClientConnected(ulong clientId)
         {
+            if (clientId == networkManager.LocalClientId)
+                sceneLoader.Observe();
             if (networkManager.IsHost)
             {
                 if (!networkState.IsSpawned || networkState.Status == SessionStatus.Lobby)
@@ -183,7 +227,8 @@ namespace MushroomSurvival
                 return;
             }
             int index = slotManager.ReleaseSlot(clientId);
-            if (networkState.Status == SessionStatus.Starting || networkState.Status == SessionStatus.Playing)
+            if (networkState.Status == SessionStatus.LoadingInGame ||
+                networkState.Status == SessionStatus.Starting || networkState.Status == SessionStatus.Playing)
             {
                 if (Array.IndexOf(matchParticipants, clientId) >= 0)
                     FailSession("A player left. The session has ended.");
@@ -209,12 +254,16 @@ namespace MushroomSurvival
             }
             finally
             {
-                if (networkManager != null && networkManager.IsListening)
+                if (networkManager != null && networkManager.IsListening && !networkManager.ShutdownInProgress)
                     networkManager.Shutdown();
                 while (!destroyed && networkManager != null && networkManager.ShutdownInProgress)
                     await Task.Yield();
+                if (!destroyed)
+                    await sceneLoader.UnloadAsync();
                 joinCode = "";
                 matchParticipants = Array.Empty<ulong>();
+                playerSpawner = null;
+                inGameLoaded = false;
                 slotManager.Clear();
             }
         }
@@ -243,13 +292,16 @@ namespace MushroomSurvival
             destroyed = true;
             if (networkState != null)
                 networkState.Changed -= RefreshState;
+            if (sceneLoader != null)
+            {
+                sceneLoader.LoadCompleted -= OnInGameLoaded;
+                sceneLoader.Dispose();
+            }
             if (networkManager != null)
             {
                 networkManager.OnClientConnectedCallback -= OnClientConnected;
                 networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
                 networkManager.OnTransportFailure -= OnTransportFailure;
-                if (networkManager.IsListening)
-                    networkManager.Shutdown();
             }
             if (connector != null)
                 _ = CleanUpAsync();

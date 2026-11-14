@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MushroomSurvival
 {
@@ -46,9 +47,10 @@ namespace MushroomSurvival
                     availablePoints.RemoveAt(pointIndex);
                     var player = Instantiate(playerPrefab, point.position, point.rotation);
                     spawned.Add(player);
+                    SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
                     if (player.TryGetComponent<SkillCaster>(out var caster))
                         caster.Initialize(effectObjects, lobby);
-                    player.SpawnAsPlayerObject(clientId);
+                    player.SpawnAsPlayerObject(clientId, destroyWithScene: true);
                 }
             }
             catch

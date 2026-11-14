@@ -32,7 +32,7 @@ namespace MushroomSurvival.Editor
                 var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
                 try
                 {
-                    ConfigurePlayerMovement(contents);
+                    ConfigurePlayer(contents);
                     PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath);
                 }
                 finally
@@ -51,16 +51,10 @@ namespace MushroomSurvival.Editor
                         ScenePath, Application.isBatchMode ? OpenSceneMode.Single : OpenSceneMode.Additive);
                 var sceneNetwork = loadedScene.GetRootGameObjects()
                     .SelectMany(root => root.GetComponentsInChildren<NetworkManager>()).Single();
-                foreach (var root in loadedScene.GetRootGameObjects())
-                {
-                    if (root.TryGetComponent<Renderer>(out var renderer))
-                        renderer.sharedMaterial = GetMaterial(ArenaMaterialPath, new Color(0.55f, 0.6f, 0.55f));
-                }
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Clear();
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(cachedRegistry);
                 ConfigureLobbyPreview(loadedScene);
-                ConfigurePlayerCollisions(loadedScene, sceneNetwork);
-                SkillSceneSetup.ConfigureScene(loadedScene);
+                InGameSceneSetup.Configure(loadedScene, cachedPrefab.GetComponent<NetworkObject>());
                 EditorUtility.SetDirty(sceneNetwork);
                 EditorSceneManager.SaveScene(loadedScene);
                 if (!wasLoaded)
@@ -82,7 +76,7 @@ namespace MushroomSurvival.Editor
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             cube.AddComponent<NetworkRigidbody>();
             cube.AddComponent<NetworkPlayerReadiness>();
-            ConfigurePlayerMovement(cube);
+            ConfigurePlayer(cube);
             var playerPrefab = PrefabUtility.SaveAsPrefabAsset(cube, PrefabPath);
             Object.DestroyImmediate(cube);
             var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab);
@@ -151,10 +145,10 @@ namespace MushroomSurvival.Editor
                 return point;
             }).ToArray();
             spawner.Configure(playerPrefab.GetComponent<NetworkObject>(), points);
-            roots.AddComponent<LobbyBootstrap>().Configure(network, state, spawner, manager, presenter, view);
+            roots.AddComponent<LobbyBootstrap>().Configure(network, state, manager, presenter, view);
             ConfigureLobbyPreview(scene);
-            ConfigurePlayerCollisions(scene, network);
-            SkillSceneSetup.ConfigureScene(scene);
+            EditorSceneManager.SaveScene(scene, ScenePath);
+            InGameSceneSetup.Configure(scene, playerPrefab.GetComponent<NetworkObject>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             var existingScenes = EditorBuildSettings.scenes.Where(item => item.path != ScenePath);
@@ -173,7 +167,7 @@ namespace MushroomSurvival.Editor
         {
             CreateScene();
             var report = BuildPipeline.BuildPlayer(
-                new[] { ScenePath },
+                new[] { ScenePath, InGameSceneSetup.ScenePath },
                 "Builds/MultiplayerSmoke/MushroomSurvival.exe",
                 BuildTarget.StandaloneWindows64,
                 BuildOptions.Development);
@@ -192,11 +186,13 @@ namespace MushroomSurvival.Editor
                 GetMaterial(ArenaMaterialPath, new Color(0.55f, 0.6f, 0.55f));
         }
 
-        private static void ConfigurePlayerMovement(GameObject player)
+        private static void ConfigurePlayer(GameObject player)
         {
             var input = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
             if (input == null)
                 throw new System.InvalidOperationException("The player input actions asset is missing.");
+            if (!player.TryGetComponent<WallContactResponse>(out _))
+                player.AddComponent<WallContactResponse>();
             var movement = player.GetComponent<RigidbodyMovement>();
             if (movement == null)
                 movement = player.AddComponent<RigidbodyMovement>();
@@ -204,19 +200,6 @@ namespace MushroomSurvival.Editor
             if (!player.TryGetComponent<PlayerPositionCorrection>(out _))
                 player.AddComponent<PlayerPositionCorrection>();
             SkillSceneSetup.ConfigurePlayer(player, input);
-        }
-
-        private static void ConfigurePlayerCollisions(Scene scene, NetworkManager network)
-        {
-            var roots = scene.GetRootGameObjects();
-            var bootstrap = roots.Select(root => root.GetComponent<LobbyBootstrap>())
-                .Single(component => component != null);
-            var lobby = roots.Select(root => root.GetComponent<LobbyNetworkState>())
-                .Single(component => component != null);
-            var manager = bootstrap.GetComponent<PlayerCollisionManager>();
-            if (manager == null)
-                manager = bootstrap.gameObject.AddComponent<PlayerCollisionManager>();
-            manager.Configure(network, lobby);
         }
 
         private static void ConfigureLobbyPreview(Scene scene)

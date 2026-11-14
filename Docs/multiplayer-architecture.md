@@ -61,7 +61,7 @@ Assets/
 ### Assets/Scripts/Features
 
 - **A · Networking** — `RelaySessionConnector`는 연결 생성·참가·종료, `NetworkPlayerSpawner`는 플레이어 생성·제거, `MatchStateReplicator`는 공개 경기 상태 송수신을 각각 담당함.
-- **A · Movement** — `RigidbodyMovement`가 소유자 입력을 이동에 적용하고, `PlayerMovementBlocker`가 플레이어 사이의 힘 전달을 막고 진행 방향을 제한함. `OwnerNetworkTransform`이 위치를 동기화함.
+- **A · Movement** — `RigidbodyMovement`가 소유자 입력을 이동 힘으로 적용함. `WallContactResponse`가 벽 법선과의 내적으로 벽 안쪽 힘을 구해 같은 크기의 반대 힘을 적용함. `PlayerMovementBlocker`는 플레이어 사이의 힘 전달을 막고 진행 방향을 제한함. `OwnerNetworkTransform`이 위치를 동기화함.
 - **A · Contacts** — `PlayerContactCollector`는 호스트가 받은 위치로 새 접촉과 접촉 해제를 수집함. 전달·탈락 여부는 규칙의 판정 결과로 받음.
 - **B · Rules** — `BombTransferRule`, `BombExplosionRule`, `PlayerStunRule`, `RankingRule`로 전달, 폭발, 스턴, 순위·우승 확정을 나눔. 현재 상태와 틱·접촉 정보를 입력받아 판정 결과를 반환함.
 - **B · Views** — `LobbyView`, `SurvivalHudView`, `SpectatorView`, `ResultView`가 각 화면을 표시함. 동일한 상태 형식으로 테스트 데이터와 실제 네트워크 데이터를 표시함.
@@ -73,6 +73,13 @@ Assets/
 - `RigidbodyMovement`는 로컬 입력과 이동 상태만 사용함. 경기 우승자 결정이나 세션 종료는 담당 매니저로 전달함.
 - `MatchStateReplicator`는 호스트 원본에서 공개 스냅샷을 전달함. 숨긴 폭발 시각은 원본에만 보관함. 클라이언트 수신 상태는 HUD와 이동 제한에 전달함.
 - 파일 설명에 서로 다른 책임이 나열되면 책임별로 분리함. 매니저에는 호출 순서와 상태 반영 코드가 모이도록 검토함.
+
+## 씬 전환
+
+- `MultiplayerLobby` 씬에 세션, 슬롯 상태, 로비 화면을 유지함. 경기장·벽·카메라·스포너·스폰 지점은 `InGame` 씬에 배치함.
+- 호스트가 시작 참가자를 고정하고 `LoadingInGame`을 공유함. `InGameSceneLoader`가 NGO Additive 로드를 요청함.
+- 시작 참가자 전원의 로드 완료를 확인한 다음 `Starting`으로 전환함. `NetworkPlayerSpawner`가 경기 씬의 지점 중 중복 없이 무작위 배정하고, 모든 소유자의 스폰 확인 후 `Playing`으로 전환함.
+- 경기 씬이 열릴 때 로비 카메라와 로비 배경을 숨김. 방을 떠날 때는 연결을 종료하고 경기 씬을 언로드한 뒤 로비를 다시 표시함.
 
 ## 목표 런타임 흐름
 

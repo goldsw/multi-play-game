@@ -8,6 +8,7 @@ namespace MushroomSurvival
         Starting,
         Playing,
         Leaving,
-        Failed
+        Failed,
+        LoadingInGame
     }
 }

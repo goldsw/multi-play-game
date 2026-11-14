@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MushroomSurvival
 {
@@ -28,6 +29,7 @@ namespace MushroomSurvival
                 return false;
 
             var instance = Instantiate(skill.SpawnPrefab, hit.point, Quaternion.identity);
+            SceneManager.MoveGameObjectToScene(instance.gameObject, gameObject.scene);
             instance.Initialize(this, skill, casterId);
             active.Add(instance);
             try
