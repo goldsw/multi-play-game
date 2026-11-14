@@ -7,6 +7,10 @@
 - `EffectDefinition` 에셋에 지속시간과 재적용 정책을 설정함. Unity의 Create → Mushroom Survival → Effects → Movement Effect에서 스턴·속도 변경·강제 이동 에셋을 생성할 수 있음.
 - `EffectManager`가 호스트 NGO 틱마다 만료된 효과를 제거하고 대기 요청을 FIFO 순서로 적용함. 각 효과의 종료 시각을 따로 기록하고, 활성 목록이 바뀌면 `ActiveEffectsChanged`를 호출함. 디스폰 시 큐와 활성 목록을 비움.
 - `MovementEffectSync`가 활성 이동 효과를 합성하고 소유자에게 상태를 동기화함. `RigidbodyMovement`가 이를 물리 틱마다 읽어 벽·플레이어 충돌 제한을 거쳐 이동함.
+- `EffectBroadcast`는 호스트가 활성 목록에 효과를 추가한 틱에 `EffectApplied(SourcePlayerId, EffectId, TargetPlayerId, EndsAtServerTime)`를 전송함. 두 플레이어 ID는 경기 중 NGO `NetworkObjectId`임. 시전자 없는 환경 효과는 `EffectApplied.NoSourcePlayer`를 사용함.
+- 정의 에셋마다 고유한 양수 `EffectId`를 설정하면 해당 효과가 브로드캐스트됨. 오리 알 감속은 ID 1임. 현재 수신 클라이언트는 대상의 발밑에 공통 주황색 링을 표시하고 서버 기준 종료 시각으로 표시를 닫음.
+- `DuckEgg`와 `FishProjectile`은 각자 프리팹을 가지며 `EffectObject`의 호스트 시작·틱 갱신·종료를 공유함. 피격 확정 시 대상의 `EffectManager`에 공통 방식으로 효과를 요청함.
+- `CameraEffectManager`는 대상 소유자에게서 효과 이벤트를 받아 ID로 `CameraEffectDefinition`을 찾음. 생선 가림 에셋은 ID 2이며 Sprite, 색상, 불투명도 곡선을 읽어 3초 뒤 오버레이를 닫음.
 
 ## 중첩 규칙
 

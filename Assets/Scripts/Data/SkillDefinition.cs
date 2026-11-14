@@ -25,6 +25,7 @@ namespace MushroomSurvival
         [SerializeField, Min(0)] private int objectLimit;
         [SerializeField, Min(0f)] private float armDelay;
         [SerializeField, Min(0f)] private float objectLifetime;
+        [SerializeField, Min(0f)] private float projectileSpeed;
 
         public string SkillId => skillId;
         public Sprite SkillIcon => skillIcon;
@@ -38,5 +39,6 @@ namespace MushroomSurvival
         public int ObjectLimit => objectLimit;
         public float ArmDelay => armDelay;
         public float ObjectLifetime => objectLifetime;
+        public float ProjectileSpeed => projectileSpeed;
     }
 }

@@ -49,7 +49,7 @@ namespace MushroomSurvival
                     spawned.Add(player);
                     SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
                     if (player.TryGetComponent<SkillCaster>(out var caster))
-                        caster.Initialize(effectObjects, lobby);
+                        caster.Initialize(effectObjects, lobby, clientId == NetworkManager.ServerClientId);
                     player.SpawnAsPlayerObject(clientId, destroyWithScene: true);
                 }
             }

@@ -10,13 +10,15 @@ namespace MushroomSurvival
 
         private readonly Transform parent;
         private readonly Material material;
+        private readonly string indicatorName;
         private readonly Vector3[] circlePositions = new Vector3[CircleSegments];
         private LineRenderer line;
 
-        public SkillRangeView(Transform parent, Material material)
+        public SkillRangeView(Transform parent, Material material, string indicatorName = "Skill Range Indicator")
         {
             this.parent = parent;
             this.material = material;
+            this.indicatorName = indicatorName;
         }
 
         public void ShowCircle(Vector3 center, float radius)
@@ -67,7 +69,7 @@ namespace MushroomSurvival
             if (line != null)
                 return line;
 
-            var indicator = new GameObject("Skill Range Indicator");
+            var indicator = new GameObject(indicatorName);
             indicator.transform.SetParent(parent, false);
             line = indicator.AddComponent<LineRenderer>();
             line.useWorldSpace = true;

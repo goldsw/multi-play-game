@@ -27,6 +27,7 @@ namespace MushroomSurvival.Editor
             Directory.CreateDirectory("Assets/Resources/Models/Maps");
             AssetDatabase.Refresh();
             var eggPrefab = SkillSceneSetup.PrepareEgg();
+            var fishPrefab = SkillSceneSetup.PrepareFish();
             if (File.Exists(ScenePath))
             {
                 var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
@@ -43,7 +44,7 @@ namespace MushroomSurvival.Editor
                 cachedPrefab.GetComponent<Renderer>().sharedMaterial =
                     GetMaterial(CubeMaterialPath, new Color(0.15f, 0.6f, 0.9f));
                 PrefabUtility.SavePrefabAsset(cachedPrefab);
-                var cachedRegistry = GetPrefabRegistry(cachedPrefab, eggPrefab);
+                var cachedRegistry = GetPrefabRegistry(cachedPrefab, eggPrefab, fishPrefab);
                 var loadedScene = SceneManager.GetSceneByPath(ScenePath);
                 var wasLoaded = loadedScene.IsValid() && loadedScene.isLoaded;
                 if (!wasLoaded)
@@ -79,7 +80,7 @@ namespace MushroomSurvival.Editor
             ConfigurePlayer(cube);
             var playerPrefab = PrefabUtility.SaveAsPrefabAsset(cube, PrefabPath);
             Object.DestroyImmediate(cube);
-            var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab);
+            var prefabs = GetPrefabRegistry(playerPrefab, eggPrefab, fishPrefab);
 
             var previousScene = SceneManager.GetActiveScene();
             var scene = EditorSceneManager.NewScene(
@@ -250,10 +251,8 @@ namespace MushroomSurvival.Editor
             return material;
         }
 
-        private static NetworkPrefabsList GetPrefabRegistry(GameObject prefab, GameObject egg)
+        private static NetworkPrefabsList GetPrefabRegistry(params GameObject[] prefabs)
         {
-            if (prefab == null)
-                throw new System.InvalidOperationException("The cube player prefab is missing.");
             const string path = "Assets/Prefabs/NetworkPrefabs.asset";
             var registry = AssetDatabase.LoadAssetAtPath<NetworkPrefabsList>(path);
             if (registry == null)
@@ -261,10 +260,13 @@ namespace MushroomSurvival.Editor
                 registry = ScriptableObject.CreateInstance<NetworkPrefabsList>();
                 AssetDatabase.CreateAsset(registry, path);
             }
-            if (!registry.Contains(prefab))
-                registry.Add(new NetworkPrefab { Prefab = prefab });
-            if (!registry.Contains(egg))
-                registry.Add(new NetworkPrefab { Prefab = egg });
+            foreach (var prefab in prefabs)
+            {
+                if (prefab == null)
+                    throw new System.InvalidOperationException("A network prefab is missing.");
+                if (!registry.Contains(prefab))
+                    registry.Add(new NetworkPrefab { Prefab = prefab });
+            }
             EditorUtility.SetDirty(registry);
             return registry;
         }

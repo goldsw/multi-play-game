@@ -16,6 +16,8 @@ namespace MushroomSurvival
         private MovementEffectSync effects;
         private InputAction moveAction;
 
+        public Vector2 Facing { get; private set; } = Vector2.up;
+
         private void Awake()
         {
             body = GetComponent<Rigidbody>();
@@ -93,6 +95,8 @@ namespace MushroomSurvival
                 if (!effectState.HasForcedMovement)
                 {
                     var input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
+                    if (input.sqrMagnitude > 0.01f)
+                        Facing = input.normalized;
                     desiredVelocity = input * (MovementSettings.Speed * effectState.SpeedMultiplier);
                 }
 

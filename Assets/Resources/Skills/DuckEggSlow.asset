@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c19e5857005c479995ec72eb90b6d63e, type: 3}
   m_Name: DuckEggSlow
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.MovementEffectDefinition
+  effectId: 1
   durationSeconds: 3
   reapplication: 0
   kind: 1

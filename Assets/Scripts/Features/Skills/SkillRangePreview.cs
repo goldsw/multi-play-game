@@ -14,12 +14,14 @@ namespace MushroomSurvival
 
         private Collider playerCollider;
         private SkillInput input;
+        private SkillCaster caster;
         private SkillRangeView view;
 
         private void Awake()
         {
             playerCollider = GetComponent<Collider>();
             input = GetComponent<SkillInput>();
+            caster = GetComponent<SkillCaster>();
             view = new SkillRangeView(transform, rangeMaterial);
         }
 
@@ -53,6 +55,14 @@ namespace MushroomSurvival
             if (skill.RangeDisplay == SkillRangeEnum.SelfCircle)
             {
                 view.ShowCircle(origin + surfaceLift, skill.SkillRange);
+                return;
+            }
+
+            if (skill.SpawnPrefab is FishProjectile && caster != null)
+            {
+                var facing = caster.Facing;
+                var end = origin + new Vector3(facing.x, 0f, facing.y) * skill.SkillRange;
+                view.ShowLine(origin + surfaceLift, end + surfaceLift);
                 return;
             }
 

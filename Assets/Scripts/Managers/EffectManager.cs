@@ -15,6 +15,7 @@ namespace MushroomSurvival
 
         public IReadOnlyList<ActiveEffect> ActiveEffects { get; private set; }
         public event Action ActiveEffectsChanged;
+        public event Action<ActiveEffect> Applied;
 
         private void Awake()
         {
@@ -84,7 +85,9 @@ namespace MushroomSurvival
                     active.RemoveAll(effect => effect.Request.Definition == definition);
                 }
 
-                active.Add(new ActiveEffect(request, now + definition.DurationSeconds));
+                var applied = new ActiveEffect(request, now + definition.DurationSeconds);
+                active.Add(applied);
+                Applied?.Invoke(applied);
             }
 
             if (changed)

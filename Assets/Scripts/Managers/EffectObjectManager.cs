@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,21 +17,17 @@ namespace MushroomSurvival
 
         public void Configure(Collider ground) => floor = ground;
 
-        public bool TrySpawnAtFeet(SkillDefinition skill, ulong casterId, Collider player)
+        public bool TrySpawn(SkillDefinition skill, NetworkObject caster, Collider player, Vector3 direction)
         {
-            if (floor == null || player == null || skill.Effect == null ||
-                skill.ObjectLifetime <= skill.ArmDelay || skill.SkillRange <= 0f ||
-                CountFor(casterId, skill.SkillId) >= skill.ObjectLimit)
+            ulong casterId = caster.OwnerClientId;
+            if (player == null || skill.Effect == null || skill.SkillRange <= 0f ||
+                (skill.ObjectLimit > 0 && CountFor(casterId, skill.SkillId) >= skill.ObjectLimit) ||
+                !skill.SpawnPrefab.TryGetSpawnPose(skill, player, floor, direction, out var position, out var rotation))
                 return false;
 
-            var bounds = player.bounds;
-            var ray = new Ray(bounds.center, Vector3.down);
-            if (!floor.Raycast(ray, out var hit, bounds.extents.y + 0.2f))
-                return false;
-
-            var instance = Instantiate(skill.SpawnPrefab, hit.point, Quaternion.identity);
+            var instance = Instantiate(skill.SpawnPrefab, position, rotation);
             SceneManager.MoveGameObjectToScene(instance.gameObject, gameObject.scene);
-            instance.Initialize(this, skill, casterId);
+            instance.Initialize(this, skill, caster);
             active.Add(instance);
             try
             {

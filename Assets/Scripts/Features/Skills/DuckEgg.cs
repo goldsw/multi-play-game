@@ -10,7 +10,6 @@ namespace MushroomSurvival
 
         private readonly NetworkVariable<bool> armed = new();
         private readonly Collider[] overlaps = new Collider[32];
-        private NetworkTickSystem ticks;
         private Vector3 shellScale;
         private double armsAt;
         private double expiresAt;
@@ -21,34 +20,42 @@ namespace MushroomSurvival
 
         private void Awake() => shellScale = shell.localScale;
 
+        internal override bool TryGetSpawnPose(SkillDefinition skill, Collider caster, Collider floor,
+            Vector3 direction, out Vector3 position, out Quaternion rotation)
+        {
+            var bounds = caster.bounds;
+            var ray = new Ray(bounds.center, Vector3.down);
+            position = default;
+            rotation = Quaternion.identity;
+            if (floor == null || skill.ObjectLifetime <= skill.ArmDelay ||
+                !floor.Raycast(ray, out var hit, bounds.extents.y + 0.2f))
+                return false;
+
+            position = hit.point;
+            return true;
+        }
+
         public override void OnNetworkSpawn()
         {
+            base.OnNetworkSpawn();
             armed.OnValueChanged += OnArmedChanged;
             OnArmedChanged(false, armed.Value);
-            if (IsServer)
-            {
-                ticks = NetworkManager.NetworkTickSystem;
-                double now = ticks.ServerTime.Time;
-                armsAt = now + Definition.ArmDelay;
-                expiresAt = now + Definition.ObjectLifetime;
-                ticks.Tick += Tick;
-            }
         }
 
         public override void OnNetworkDespawn()
         {
             armed.OnValueChanged -= OnArmedChanged;
-            if (ticks != null)
-            {
-                ticks.Tick -= Tick;
-                ticks = null;
-            }
             base.OnNetworkDespawn();
         }
 
-        private void Tick()
+        protected override void OnEffectStart(double now)
         {
-            double now = ticks.ServerTime.Time;
+            armsAt = now + Definition.ArmDelay;
+            expiresAt = now + Definition.ObjectLifetime;
+        }
+
+        protected override void OnEffectUpdate(double now)
+        {
             if (now >= expiresAt)
             {
                 NetworkObject.Despawn();
@@ -61,7 +68,7 @@ namespace MushroomSurvival
                 armed.Value = true;
 
             var target = FindTarget();
-            if (target != null && target.TryEnqueue(new EffectRequest(Definition.Effect)))
+            if (TryApplyTo(target))
                 NetworkObject.Despawn();
         }
 

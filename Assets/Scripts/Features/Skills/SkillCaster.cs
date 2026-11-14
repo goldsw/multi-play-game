@@ -8,17 +8,22 @@ namespace MushroomSurvival
     public sealed class SkillCaster : NetworkBehaviour
     {
         [SerializeField] private SkillDefinition skill;
+        [SerializeField] private SkillDefinition alternateSkill;
 
         private NetworkList<double> rechargeEndsAt;
         private readonly NetworkVariable<int> placedCount = new(
             0, NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+        private readonly NetworkVariable<bool> useAlternateSkill = new();
 
         private EffectObjectManager objects;
         private LobbyNetworkState lobby;
         private EffectManager effects;
         private Collider playerCollider;
+        private RigidbodyMovement movement;
+        private bool startWithAlternateSkill;
 
-        public SkillDefinition Skill => skill;
+        public SkillDefinition Skill => useAlternateSkill.Value ? alternateSkill : skill;
+        public Vector2 Facing => movement != null ? movement.Facing : Vector2.up;
         public int PlacedCount => placedCount.Value;
         public double ServerTime => IsSpawned ? NetworkManager.ServerTime.Time : 0d;
 
@@ -29,22 +34,32 @@ namespace MushroomSurvival
         {
             effects = GetComponent<EffectManager>();
             playerCollider = GetComponent<Collider>();
+            movement = GetComponent<RigidbodyMovement>();
             rechargeEndsAt = new NetworkList<double>(readPerm: NetworkVariableReadPermission.Owner);
         }
 
-        public void Configure(SkillDefinition definition) => skill = definition;
+        public void Configure(SkillDefinition definition, SkillDefinition alternate)
+        {
+            skill = definition;
+            alternateSkill = alternate;
+        }
 
-        public void Initialize(EffectObjectManager manager, LobbyNetworkState state)
+        public void Initialize(EffectObjectManager manager, LobbyNetworkState state, bool useAlternate)
         {
             objects = manager;
             lobby = state;
+            startWithAlternateSkill = useAlternate;
         }
 
         public override void OnNetworkSpawn()
         {
-            if (IsOwner && TryGetComponent<SkillRangePreview>(out var preview))
-                preview.SetSkill(skill);
+            if (IsServer)
+                useAlternateSkill.Value = startWithAlternateSkill && alternateSkill != null;
 
+            if (IsOwner && TryGetComponent<SkillRangePreview>(out var preview))
+                preview.SetSkill(Skill);
+
+            var skill = Skill;
             if (!IsServer || skill == null)
                 return;
 
@@ -65,15 +80,19 @@ namespace MushroomSurvival
         public void RequestCast()
         {
             if (IsSpawned && IsOwner)
-                CastRpc();
+                CastRpc(Facing);
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-        private void CastRpc()
+        private void CastRpc(Vector2 facing)
         {
+            var skill = Skill;
             if (skill == null || lobby == null || lobby.Status != SessionStatus.Playing)
                 return;
+            if (!float.IsFinite(facing.sqrMagnitude) || facing.sqrMagnitude < 0.01f)
+                return;
 
+            var direction = new Vector3(facing.x, 0f, facing.y).normalized;
             double now = ServerTime;
             for (int charge = 0; charge < rechargeEndsAt.Count; charge++)
             {
@@ -81,8 +100,8 @@ namespace MushroomSurvival
                     continue;
 
                 bool cast = skill.SpawnPrefab != null
-                    ? objects != null && objects.TrySpawnAtFeet(skill, OwnerClientId, playerCollider)
-                    : effects.TryEnqueue(new EffectRequest(skill.Effect));
+                    ? objects != null && objects.TrySpawn(skill, NetworkObject, playerCollider, direction)
+                    : effects.TryEnqueue(new EffectRequest(skill.Effect, sourcePlayerId: NetworkObjectId));
                 if (cast)
                     rechargeEndsAt[charge] = now + skill.CooldownSeconds;
                 return;
@@ -91,7 +110,7 @@ namespace MushroomSurvival
 
         private void UpdatePlacedCount(ulong casterId, string skillId, int count)
         {
-            if (IsSpawned && casterId == OwnerClientId && skillId == skill.SkillId)
+            if (IsSpawned && casterId == OwnerClientId && skillId == Skill.SkillId)
                 placedCount.Value = count;
         }
     }

@@ -26,6 +26,9 @@ GameObject:
   - component: {fileID: 8161601901372437856}
   - component: {fileID: 6753241086196472041}
   - component: {fileID: 3913910381715139742}
+  - component: {fileID: 2712517523483621169}
+  - component: {fileID: 3857541065616492817}
+  - component: {fileID: 4731751389414280172}
   m_Layer: 0
   m_Name: CubePlayer
   m_TagString: Untagged
@@ -296,6 +299,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.PlayerPositionCorrection
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &499203624867025220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d2b08145e16b81428fa20e0581df15e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.WallContactResponse
 --- !u!114 &1509542063071240974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,6 +366,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillCaster
   ShowTopMostFoldoutHeaderGroup: 1
   skill: {fileID: 11400000, guid: 11760fd5b7414977acec9748a983a847, type: 2}
+  alternateSkill: {fileID: 11400000, guid: 73c99cf966ef4d8aa16a80ce80713532, type: 2}
 --- !u!114 &3913910381715139742
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -365,7 +381,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SkillInput
   ShowTopMostFoldoutHeaderGroup: 1
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
---- !u!114 &499203624867025220
+--- !u!114 &2712517523483621169
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -374,6 +390,35 @@ MonoBehaviour:
   m_GameObject: {fileID: 7642104388839635564}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d2b08145e16b81428fa20e0581df15e, type: 3}
+  m_Script: {fileID: 11500000, guid: f626641d68e0458697df0267dbd7d1a3, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.WallContactResponse
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.EffectBroadcast
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &3857541065616492817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb48547fa48b44169474dab22bfe2b05, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.EffectIndicator
+  material: {fileID: 2100000, guid: d087b4c11fe24eb5acaab3ea8a874702, type: 2}
+--- !u!114 &4731751389414280172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f1debea77874d2692daf0f612a71043, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.CameraEffectManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  cameraEffects:
+  - {fileID: 11400000, guid: 57b61301443a41d99f33f843a675df5a, type: 2}
