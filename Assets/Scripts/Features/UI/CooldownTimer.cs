@@ -35,6 +35,9 @@ namespace MushroomSurvival
             fill.fillAmount = Mathf.Clamp01(fraction);
         }
 
+        public void SetChargeGauge(int ready, int capacity) =>
+            SetSkillGauge(capacity > 0 ? (float)ready / capacity : 0f, false);
+
         public void Clear()
         {
             SetCooldown(0d, 0f);

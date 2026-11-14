@@ -65,26 +65,33 @@ namespace MushroomSurvival
 
             double now = network.ServerTime.Time;
             if (currentSkill != null)
-            {
-                bool active = caster.ActiveEndsAt > now && currentSkill.CooldownAfterEffect;
-                float gauge = 0f;
-                if (active)
-                    gauge = (float)((caster.ActiveEndsAt - now) / currentSkill.Effect.DurationSeconds);
-                else
-                {
-                    for (int charge = 0; charge < currentSkill.Charges; charge++)
-                    {
-                        double remaining = caster.GetRechargeEnd(charge) - now;
-                        gauge += currentSkill.CooldownSeconds > 0f
-                            ? 1f - Mathf.Clamp01((float)(remaining / currentSkill.CooldownSeconds)) : 1f;
-                    }
-                    gauge /= Mathf.Max(1, currentSkill.Charges);
-                }
-                SkillSlot.Timer.SetSkillGauge(gauge, active);
-            }
+                RenderSkillGauge(currentSkill, now);
 
             ItemSlot.Timer.Render(now);
             itemView.Render();
+        }
+
+        private void RenderSkillGauge(SkillDefinition skill, double now)
+        {
+            bool active = skill.CooldownAfterEffect && caster.ActiveEndsAt > now;
+            if (active)
+            {
+                float remaining = (float)((caster.ActiveEndsAt - now) / skill.Effect.DurationSeconds);
+                SkillSlot.Timer.SetSkillGauge(remaining, true);
+                return;
+            }
+
+            if (skill.Charges > 1)
+            {
+                SkillSlot.Timer.SetChargeGauge(caster.GetReadyChargeCount(now), skill.Charges);
+                return;
+            }
+
+            double rechargeRemaining = caster.GetRechargeEnd(0) - now;
+            float progress = skill.CooldownSeconds > 0f
+                ? 1f - Mathf.Clamp01((float)(rechargeRemaining / skill.CooldownSeconds))
+                : 1f;
+            SkillSlot.Timer.SetSkillGauge(progress, false);
         }
     }
 }

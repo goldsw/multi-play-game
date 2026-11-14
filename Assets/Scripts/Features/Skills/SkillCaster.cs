@@ -36,6 +36,17 @@ namespace MushroomSurvival
         public double GetRechargeEnd(int chargeIndex) =>
             chargeIndex >= 0 && chargeIndex < rechargeEndsAt.Count ? rechargeEndsAt[chargeIndex] : 0d;
 
+        public int GetReadyChargeCount(double serverTime)
+        {
+            int ready = 0;
+            for (int index = 0; index < rechargeEndsAt.Count; index++)
+            {
+                if (rechargeEndsAt[index] <= serverTime)
+                    ready++;
+            }
+            return ready;
+        }
+
         private void Awake()
         {
             effects = GetComponent<EffectManager>();
