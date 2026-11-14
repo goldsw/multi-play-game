@@ -9,6 +9,8 @@ namespace MushroomSurvival
     {
         private readonly NetworkVariable<ItemKind> held = new(
             ItemKind.None, NetworkVariableReadPermission.Owner);
+        private readonly NetworkVariable<bool> trapReady = new(
+            false, NetworkVariableReadPermission.Owner);
         private readonly NetworkVariable<bool> inUse = new(
             false, NetworkVariableReadPermission.Owner);
         private ItemWorld world;
@@ -17,6 +19,7 @@ namespace MushroomSurvival
         private RigidbodyMovement movement;
 
         public ItemKind Held => held.Value;
+        public bool IsTrapReady => trapReady.Value;
         public bool InUse => inUse.Value;
 
         private void Awake()
@@ -55,8 +58,16 @@ namespace MushroomSurvival
                 !float.IsFinite(facing.sqrMagnitude) || facing.sqrMagnitude < 0.01f)
                 return;
 
+            if ((requested is ItemKind.Water or ItemKind.Banana) && !trapReady.Value)
+            {
+                trapReady.Value = true;
+                return;
+            }
+
             if (world.TryUse(NetworkObject, requested, facing.normalized))
             {
+                if (trapReady.Value)
+                    trapReady.Value = false;
                 held.Value = ItemKind.None;
                 inUse.Value = world.IsInUse(NetworkObject, requested);
             }
@@ -68,7 +79,11 @@ namespace MushroomSurvival
                 return;
 
             if (character.IsEliminated && Held != ItemKind.None)
+            {
+                if (trapReady.Value)
+                    trapReady.Value = false;
                 held.Value = ItemKind.None;
+            }
 
             bool usingItem = !character.IsEliminated &&
                 (world.IsInUse(NetworkObject, ItemKind.Water) || world.IsInUse(NetworkObject, ItemKind.Apple) ||

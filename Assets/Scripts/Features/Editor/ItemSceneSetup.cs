@@ -22,6 +22,7 @@ namespace MushroomSurvival.Editor
 
             var box = PrepareVisual<ItemBox>("ItemBox", PrimitiveType.Cube,
                 new Vector3(0.6f, 0.58f, 0.6f), 0.29f, new Color(0.96f, 0.62f, 0.18f));
+            ConfigureBoxPhysics(box);
             var spawner = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabFolder + "ItemBoxSpawner.prefab");
             if (spawner == null)
             {
@@ -45,6 +46,29 @@ namespace MushroomSurvival.Editor
         {
             GetOrAdd<PlayerItemInventory>(player);
             GetOrAdd<ItemInput>(player).Configure(actions);
+        }
+
+        private static void ConfigureBoxPhysics(GameObject box)
+        {
+            var path = AssetDatabase.GetAssetPath(box);
+            var prefab = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                var sync = GetOrAdd<NetworkTransform>(prefab);
+                sync.SyncScaleX = sync.SyncScaleY = sync.SyncScaleZ = false;
+                sync.SyncRotAngleX = sync.SyncRotAngleY = sync.SyncRotAngleZ = false;
+
+                prefab.GetComponent<BoxCollider>().isTrigger = false;
+                var body = prefab.GetComponent<Rigidbody>();
+                body.linearDamping = 4f;
+                body.constraints = RigidbodyConstraints.FreezeRotation;
+                body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                PrefabUtility.SaveAsPrefabAsset(prefab, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(prefab);
+            }
         }
 
         public static void ConfigureScene(Scene scene, GameObject composition)
@@ -82,10 +106,9 @@ namespace MushroomSurvival.Editor
             }
             if (typeof(T) == typeof(ItemBox))
             {
-                var trigger = root.AddComponent<BoxCollider>();
-                trigger.isTrigger = true;
-                trigger.center = new Vector3(0f, height, 0f);
-                trigger.size = scale;
+                var collider = root.AddComponent<BoxCollider>();
+                collider.center = new Vector3(0f, height, 0f);
+                collider.size = scale;
                 var body = root.AddComponent<Rigidbody>();
                 body.isKinematic = true;
                 body.useGravity = false;

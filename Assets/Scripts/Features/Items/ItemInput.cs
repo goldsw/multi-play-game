@@ -31,7 +31,7 @@ namespace MushroomSurvival
             if (action != null || inputActions == null)
                 return;
 
-            action = inputActions.FindAction("Player/Interact", throwIfNotFound: true).Clone();
+            action = inputActions.FindAction("Player/UseItem", throwIfNotFound: true).Clone();
             action.performed += OnUse;
             action.Enable();
         }

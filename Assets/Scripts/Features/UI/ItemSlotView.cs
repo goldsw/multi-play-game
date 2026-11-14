@@ -7,17 +7,14 @@ namespace MushroomSurvival
     {
         private PlayerItemInventory inventory;
         private Image highlight;
-        private Button button;
         private Image[] icons;
 
-        public void Configure(Image stroke, Button input, Image water, Image apple, Image banana)
+        public void Configure(Image stroke, Image water, Image apple, Image banana)
         {
             highlight = stroke;
-            button = input;
             icons = new[] { water, apple, banana };
             for (int index = 0; index < icons.Length; index++)
                 icons[index].sprite = ItemIcon.Create((ItemKind)(index + 1));
-            button.onClick.AddListener(UseItem);
             Render();
         }
 
@@ -32,11 +29,8 @@ namespace MushroomSurvival
             var held = inventory != null ? inventory.Held : ItemKind.None;
             for (int index = 0; index < icons.Length; index++)
                 icons[index].gameObject.SetActive((int)held == index + 1);
-            button.interactable = held != ItemKind.None;
             highlight.enabled = held != ItemKind.None || (inventory != null && inventory.InUse);
         }
-
-        private void UseItem() => inventory?.RequestUse();
 
         private void OnDestroy()
         {

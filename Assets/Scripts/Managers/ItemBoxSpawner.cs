@@ -114,7 +114,7 @@ namespace MushroomSurvival
             float range = map.TileSize * 0.5f;
             foreach (ItemBox box in pool)
             {
-                if (box.IsActive && (box.Floor - floor).sqrMagnitude < range * range)
+                if (box.IsActive && (box.OccupiedPosition - floor).sqrMagnitude < range * range)
                     return false;
             }
 

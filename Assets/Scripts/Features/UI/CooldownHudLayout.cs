@@ -1,7 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace MushroomSurvival
@@ -15,8 +13,7 @@ namespace MushroomSurvival
         public static GameObject Create(Transform parent, out CooldownSlot skill, out CooldownSlot item,
             out ItemSlotView itemView)
         {
-            var root = new GameObject("In Game Cooldowns", typeof(RectTransform), typeof(Canvas),
-                typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var root = new GameObject("In Game Cooldowns", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.transform.SetParent(parent, false);
             var canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -36,23 +33,11 @@ namespace MushroomSurvival
             item = layout.CreateSlot("Item Slot", 60f, 39f);
             var itemRect = (RectTransform)item.transform;
             var stroke = AddImage(itemRect, "Item Held or in Use", layout.ring, new Color32(208, 26, 50, 255), 1f);
-            var target = itemRect.Find("Disc").GetComponent<Image>();
-            target.raycastTarget = true;
-            var button = item.gameObject.AddComponent<Button>();
-            button.targetGraphic = target;
-            button.transition = Selectable.Transition.None;
-            button.navigation = new Navigation { mode = Navigation.Mode.None };
             itemView = item.gameObject.AddComponent<ItemSlotView>();
-            itemView.Configure(stroke, button,
+            itemView.Configure(stroke,
                 AddImage(itemRect, "Water Icon", null, Color.white, 0.62f),
                 AddImage(itemRect, "Apple Icon", null, Color.white, 0.62f),
                 AddImage(itemRect, "Banana Icon", null, Color.white, 0.62f));
-            if (EventSystem.current == null)
-            {
-                var events = new GameObject("In Game UI Events", typeof(EventSystem));
-                events.transform.SetParent(root.transform, false);
-                events.AddComponent<InputSystemUIInputModule>();
-            }
             return root;
         }
 
