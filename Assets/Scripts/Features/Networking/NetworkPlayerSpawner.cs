@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MushroomSurvival
 {
@@ -9,6 +10,14 @@ namespace MushroomSurvival
     {
         [SerializeField] private NetworkObject playerPrefab;
         [SerializeField] private Transform[] spawnPoints;
+        private EffectObjectManager effectObjects;
+        private LobbyNetworkState lobby;
+
+        public void InitializeSkills(EffectObjectManager manager, LobbyNetworkState state)
+        {
+            effectObjects = manager;
+            lobby = state;
+        }
 
         public void Configure(NetworkObject prefab, Transform[] positions)
         {
@@ -38,7 +47,10 @@ namespace MushroomSurvival
                     availablePoints.RemoveAt(pointIndex);
                     var player = Instantiate(playerPrefab, point.position, point.rotation);
                     spawned.Add(player);
-                    player.SpawnAsPlayerObject(clientId);
+                    SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
+                    if (player.TryGetComponent<SkillCaster>(out var caster))
+                        caster.Initialize(effectObjects, lobby);
+                    player.SpawnAsPlayerObject(clientId, destroyWithScene: true);
                 }
             }
             catch

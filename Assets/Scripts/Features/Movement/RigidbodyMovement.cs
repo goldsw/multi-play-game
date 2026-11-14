@@ -4,19 +4,24 @@ using UnityEngine.InputSystem;
 
 namespace MushroomSurvival
 {
-    [RequireComponent(typeof(Rigidbody), typeof(PlayerMovementBlocker))]
+    [RequireComponent(typeof(Rigidbody), typeof(PlayerMovementBlocker), typeof(WallContactResponse))]
+    [RequireComponent(typeof(MovementEffectSync))]
     public sealed class RigidbodyMovement : NetworkBehaviour
     {
         [SerializeField] private InputActionAsset inputActions;
 
         private Rigidbody body;
         private PlayerMovementBlocker blocker;
+        private WallContactResponse wallResponse;
+        private MovementEffectSync effects;
         private InputAction moveAction;
 
         private void Awake()
         {
             body = GetComponent<Rigidbody>();
             blocker = GetComponent<PlayerMovementBlocker>();
+            wallResponse = GetComponent<WallContactResponse>();
+            effects = GetComponent<MovementEffectSync>();
         }
 
         public void Configure(InputActionAsset actions)
@@ -46,11 +51,13 @@ namespace MushroomSurvival
         public override void OnLostOwnership()
         {
             ReleaseInput();
+            wallResponse.ClearContacts();
         }
 
         public override void OnNetworkDespawn()
         {
             ReleaseInput();
+            wallResponse.ClearContacts();
         }
 
         private void EnableInput()
@@ -77,15 +84,29 @@ namespace MushroomSurvival
                 return;
             }
 
-            var input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
+            var effectState = effects != null ? effects.State : MovementEffectState.Neutral;
             var velocity = body.linearVelocity;
-            var planarVelocity = Vector2.MoveTowards(
-                new Vector2(velocity.x, velocity.z),
-                input * MovementSettings.Speed,
-                MovementSettings.Acceleration * Time.fixedDeltaTime);
+            var planarVelocity = Vector2.zero;
+            if (!effectState.Stunned)
+            {
+                var desiredVelocity = effectState.ForcedPlanarVelocity;
+                if (!effectState.HasForcedMovement)
+                {
+                    var input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
+                    desiredVelocity = input * (MovementSettings.Speed * effectState.SpeedMultiplier);
+                }
 
-            body.linearVelocity = blocker.LimitHorizontalVelocity(
+                planarVelocity = Vector2.MoveTowards(
+                    new Vector2(velocity.x, velocity.z),
+                    desiredVelocity,
+                    MovementSettings.Acceleration * Time.fixedDeltaTime);
+            }
+
+            var targetVelocity = blocker.LimitHorizontalVelocity(
                 new Vector3(planarVelocity.x, velocity.y, planarVelocity.y));
+            var movementForce = (targetVelocity - velocity) * (body.mass / Time.fixedDeltaTime);
+            body.AddForce(movementForce, ForceMode.Force);
+            wallResponse.ApplyReaction(movementForce);
         }
     }
 }

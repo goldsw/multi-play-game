@@ -7,7 +7,6 @@ namespace MushroomSurvival
     {
         [SerializeField] private NetworkManager networkManager;
         [SerializeField] private LobbyNetworkState networkState;
-        [SerializeField] private NetworkPlayerSpawner playerSpawner;
         [SerializeField] private SessionManager sessionManager;
         [SerializeField] private LobbyPresenter presenter;
         [SerializeField] private LobbyView view;
@@ -19,14 +18,12 @@ namespace MushroomSurvival
         public void Configure(
             NetworkManager network,
             LobbyNetworkState state,
-            NetworkPlayerSpawner spawner,
             SessionManager manager,
             LobbyPresenter lobbyPresenter,
             LobbyView lobbyView)
         {
             networkManager = network;
             networkState = state;
-            playerSpawner = spawner;
             sessionManager = manager;
             presenter = lobbyPresenter;
             view = lobbyView;
@@ -48,8 +45,9 @@ namespace MushroomSurvival
                     : new DirectSessionConnector(networkManager);
             }
 #endif
-            sessionManager.Initialize(networkManager, networkState, playerSpawner, connector, slots);
+            sessionManager.Initialize(networkManager, networkState, new InGameSceneLoader(networkManager), connector, slots);
             presenter.Initialize(sessionManager, view, preview);
+            gameObject.AddComponent<InGameCooldownHud>().Configure(networkManager, networkState);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (smokeTest)
                 gameObject.AddComponent<LobbySmokeRunner>().Initialize(

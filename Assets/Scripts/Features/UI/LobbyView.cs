@@ -60,9 +60,14 @@ namespace MushroomSurvival
         private void DrawStatus()
         {
             GUI.Box(new Rect(20, 20, 420, 92), GUIContent.none);
-            string heading = state.Status.ToString();
-            if (!string.IsNullOrEmpty(state.JoinCode))
-                heading = "방 코드  " + state.JoinCode;
+            string heading = state.Status switch
+            {
+                SessionStatus.Lobby when !string.IsNullOrEmpty(state.JoinCode) => "방 코드  " + state.JoinCode,
+                SessionStatus.LoadingInGame => "경기장 로딩 중",
+                SessionStatus.Starting => "플레이어 준비 중",
+                SessionStatus.Playing => "경기 중",
+                _ => state.Status.ToString()
+            };
 
             GUI.Label(new Rect(36, 29, 388, 40), heading, titleStyle);
             GUI.Label(new Rect(36, 68, 388, 35),

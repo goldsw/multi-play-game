@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MushroomSurvival
 {
@@ -14,6 +15,7 @@ namespace MushroomSurvival
         private string joinCode;
         private int expectedPlayers;
         private bool succeeded;
+        private bool verifyingReturn;
         private float deadline;
         private float quitAt;
 
@@ -105,27 +107,57 @@ namespace MushroomSurvival
         {
             if (session == null)
                 return;
-            if (host && session.State.Status == SessionStatus.Lobby &&
+            if (!succeeded && host && session.State.Status == SessionStatus.Lobby &&
                 session.State.PlayerCount == expectedPlayers)
                 session.StartMatch();
 
             if (!succeeded && session.State.Status == SessionStatus.Playing &&
                 session.State.PlayerCount == expectedPlayers &&
                 network.LocalClient.PlayerObject != null &&
+                network.LocalClient.PlayerObject.gameObject.scene.name == InGameSceneLoader.SceneName &&
                 network.SpawnManager.SpawnedObjectsList.Count >= expectedPlayers + 1)
             {
                 succeeded = true;
                 quitAt = Time.realtimeSinceStartup + 8f;
-                Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; phase=Playing; owner={network.LocalClientId}");
+                Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; scene=InGame; phase=Playing; owner={network.LocalClientId}");
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-move") >= 0)
                     gameObject.AddComponent<MovementSmokeProbe>().Initialize(network);
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-ingame-return") >= 0)
+                {
+                    verifyingReturn = true;
+                    quitAt = Time.realtimeSinceStartup + 30f;
+                    _ = VerifyInGameReturnAsync();
+                }
             }
             if (succeeded && Time.realtimeSinceStartup >= quitAt)
-                Application.Quit(0);
+            {
+                if (verifyingReturn)
+                    Debug.LogError("MUSHROOM_SMOKE_FAILED InGame return timed out.");
+                Application.Quit(verifyingReturn ? 1 : 0);
+            }
             else if (!succeeded && Time.realtimeSinceStartup >= deadline)
             {
                 Debug.LogError("MUSHROOM_SMOKE_FAILED phase=" + session.State.Status +
                     " count=" + session.State.PlayerCount + " message=" + session.State.Message);
+                Application.Quit(1);
+            }
+        }
+
+        private async Task VerifyInGameReturnAsync()
+        {
+            try
+            {
+                await session.LeaveAsync();
+                if (session.State.Status != SessionStatus.Lobby || !session.State.LocalIsHost ||
+                    SceneManager.GetSceneByName(InGameSceneLoader.SceneName).isLoaded ||
+                    network.LocalClient.PlayerObject != null)
+                    throw new InvalidOperationException("Returning to the lobby did not unload the match.");
+                Debug.Log("MUSHROOM_INGAME_RETURN_PASSED scene unloaded; own room restored");
+                Application.Quit(0);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("MUSHROOM_SMOKE_FAILED " + exception.Message);
                 Application.Quit(1);
             }
         }
