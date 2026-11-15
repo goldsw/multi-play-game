@@ -60,6 +60,7 @@ namespace MushroomSurvival.Editor
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Clear();
                 sceneNetwork.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(cachedRegistry);
                 ConfigureLobbyPreview(loadedScene);
+                LobbyCanvasSetup.Configure(loadedScene);
                 InGameSceneSetup.Configure(loadedScene, cachedPrefab.GetComponent<NetworkObject>());
                 EditorUtility.SetDirty(sceneNetwork);
                 EditorSceneManager.SaveScene(loadedScene);
@@ -154,6 +155,7 @@ namespace MushroomSurvival.Editor
             spawner.Configure(playerPrefab.GetComponent<NetworkObject>(), points);
             roots.AddComponent<LobbyBootstrap>().Configure(network, state, manager, presenter, view);
             ConfigureLobbyPreview(scene);
+            LobbyCanvasSetup.Configure(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             InGameSceneSetup.Configure(scene, playerPrefab.GetComponent<NetworkObject>());
 

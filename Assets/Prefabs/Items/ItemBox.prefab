@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 862253441548062579}
   - component: {fileID: 6256826015414797032}
   - component: {fileID: 6325764098802516595}
-  - component: {fileID: 4584388517391291631}
+  - component: {fileID: 6125747761672927023}
+  - component: {fileID: 1349879758264508111}
   m_Layer: 0
   m_Name: ItemBox
   m_TagString: Untagged
@@ -60,7 +61,7 @@ MonoBehaviour:
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
+  DontDestroyWithOwner: 1
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
@@ -125,7 +126,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemBox
   ShowTopMostFoldoutHeaderGroup: 1
---- !u!114 &4584388517391291631
+--- !u!114 &6125747761672927023
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,9 +135,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3627204884782311426}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
+  m_Script: {fileID: 11500000, guid: 305c380298cc3574ba022e08f4d169b4, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkTransform
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.OwnerNetworkTransform
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkTransformExpanded: 0
   AutoOwnerAuthorityTickOffset: 1
@@ -171,6 +172,18 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &1349879758264508111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3627204884782311426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef1ade4241a03047a88c14c6ca02a72, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemBoxPhysics
 --- !u!1 &5268129062237475633
 GameObject:
   m_ObjectHideFlags: 0
