@@ -62,11 +62,13 @@ namespace MushroomSurvival.ClientUI
         [SerializeField] private InputField roomCodeInput;
         [SerializeField] private InputField messageInput;
         [SerializeField] private Slider[] volumeSliders = Array.Empty<Slider>();
+        [SerializeField] private Dropdown languageDropdown;
         [SerializeField] private AudioSource previewAudio;
 
         private readonly List<ClientCosmeticDefinition> visibleCosmetics = new List<ClientCosmeticDefinition>();
         private readonly List<ButtonListener> buttonListeners = new List<ButtonListener>();
         private readonly List<SliderListener> sliderListeners = new List<SliderListener>();
+        private UnityAction<int> languageListener;
         private readonly List<string> recentMessages = new List<string>();
         private ClientProfileStore profiles;
         private ClientEconomyService economy;
@@ -101,10 +103,12 @@ namespace MushroomSurvival.ClientUI
             profiles = new ClientProfileStore();
             profiles.Initialize(catalog);
             economy = new ClientEconomyService(catalog, profiles);
+            AudioListener.volume = profiles.Profile.masterVolume;
             profiles.Changed += OnProfileChanged;
             if (previewAudio != null) previewAudio.playOnAwake = false;
             BindExistingButtons();
             BindExistingSliders();
+            BindLanguageDropdown();
             ShowPage(0);
             RefreshAll();
         }
@@ -117,6 +121,8 @@ namespace MushroomSurvival.ClientUI
                 if (binding.button != null) binding.button.onClick.RemoveListener(binding.callback);
             foreach (var binding in sliderListeners)
                 if (binding.slider != null) binding.slider.onValueChanged.RemoveListener(binding.callback);
+            if (languageDropdown != null && languageListener != null)
+                languageDropdown.onValueChanged.RemoveListener(languageListener);
         }
 
         // ClientMenuAction이 붙은 기존 Button을 찾아 클릭 동작을 연결합니다.
@@ -146,9 +152,26 @@ namespace MushroomSurvival.ClientUI
                 UnityAction<float> callback = value => SetVolume(index, value);
                 slider.onValueChanged.AddListener(callback);
                 sliderListeners.Add(new SliderListener { slider = slider, callback = callback });
-                var saved = i == 0 ? profiles.Profile.masterVolume : i == 1 ? profiles.Profile.musicVolume : profiles.Profile.effectsVolume;
+                var saved = i == 0 ? profiles.Profile.effectsVolume : i == 1 ? profiles.Profile.musicVolume : profiles.Profile.masterVolume;
                 slider.SetValueWithoutNotify(saved);
             }
+        }
+
+        // 언어 선택값을 로컬 환경설정으로 저장합니다. 실제 번역 문자열은 별도 현지화 데이터가 필요합니다.
+        private void BindLanguageDropdown()
+        {
+            if (languageDropdown == null) return;
+            if (languageDropdown.options == null || languageDropdown.options.Count == 0)
+                languageDropdown.AddOptions(new List<string> { "한국어", "English", "日本語" });
+            var selected = Mathf.Clamp(PlayerPrefs.GetInt("mushroom-survival.language", 0), 0, languageDropdown.options.Count - 1);
+            languageDropdown.SetValueWithoutNotify(selected);
+            languageListener = value =>
+            {
+                PlayerPrefs.SetInt("mushroom-survival.language", value);
+                PlayerPrefs.Save();
+                SetNotice("언어 선택이 저장되었습니다. 번역 데이터는 별도 연결이 필요합니다.");
+            };
+            languageDropdown.onValueChanged.AddListener(languageListener);
         }
 
         // 버튼에 지정된 동작 종류에 따라 해당 처리 메서드를 호출합니다.
@@ -171,6 +194,7 @@ namespace MushroomSurvival.ClientUI
                 case ClientMenuActionType.JoinRoomPreview: RequestRoom(false); break;
                 case ClientMenuActionType.ToggleReadyPreview: ToggleReady(); break;
                 case ClientMenuActionType.SubmitMessagePreview: SubmitMessage(); break;
+                case ClientMenuActionType.LeaveRoomPreview: LeaveRoom(); break;
             }
         }
 
@@ -183,7 +207,7 @@ namespace MushroomSurvival.ClientUI
             SetNotice(string.Empty);
             if (index == 1) RefreshCharacter();
             if (index == 2) RefreshCosmetics();
-            if (index == 4) RefreshReward();
+            if (index == 6) RefreshReward();
             if (index == 5) RefreshItems();
         }
 
@@ -288,6 +312,12 @@ namespace MushroomSurvival.ClientUI
             if (lobbyStatus != null) lobbyStatus.text = create ? "방 생성 요청 미리보기" : $"방 코드 {code} 참가 요청 미리보기";
         }
 
+        // 현재 방을 떠날 때의 로컬 안내만 표시합니다. 실제 참가자 이동은 네트워크 연결 후 처리합니다.
+        private void LeaveRoom()
+        {
+            if (lobbyStatus != null) lobbyStatus.text = "방 나가기 미리보기 · 실제 이동은 네트워크 연결 후 처리됩니다.";
+        }
+
         // 네트워크와 무관한 로컬 준비 상태 표시를 전환합니다.
         private void ToggleReady()
         {
@@ -307,17 +337,17 @@ namespace MushroomSurvival.ClientUI
             if (messageInput != null) messageInput.text = string.Empty;
         }
 
-        // 슬라이더 순서에 따라 전체·음악·효과음 값을 로컬 프로필에 저장합니다.
+        // 슬라이더 순서에 따라 효과음·배경음·전체 음량을 로컬 프로필에 저장합니다.
         private void SetVolume(int index, float value)
         {
             var profile = profiles.Profile;
-            if (index == 0)
+            if (index == 0) profiles.SetVolumes(profile.masterVolume, profile.musicVolume, value);
+            else if (index == 1) profiles.SetVolumes(profile.masterVolume, value, profile.effectsVolume);
+            else
             {
                 AudioListener.volume = value;
                 profiles.SetVolumes(value, profile.musicVolume, profile.effectsVolume);
             }
-            else if (index == 1) profiles.SetVolumes(profile.masterVolume, value, profile.effectsVolume);
-            else profiles.SetVolumes(profile.masterVolume, profile.musicVolume, value);
         }
 
         // 주요 메뉴 화면의 표시 데이터를 모두 갱신합니다.
@@ -349,14 +379,14 @@ namespace MushroomSurvival.ClientUI
                 var loadout = profile.LoadoutFor(character.id);
                 characterDetails.text = $"{character.displayName}\n{character.description}\n고유 스킬 보유: {(character.hasAssignedSkill ? "보유" : "미보유")}\n스킨: {CosmeticName(loadout?.equippedSkinId)} · 사운드: {CosmeticName(loadout?.equippedVoiceId)} · 승리 포즈: {CosmeticName(loadout?.equippedVictoryPoseId)}";
             }
-            if (characterPortrait != null) characterPortrait.sprite = character.portrait;
+            if (characterPortrait != null && character.portrait != null) characterPortrait.sprite = character.portrait;
             for (var i = 0; i < characterSlots.Length; i++)
             {
                 var definition = i < catalog.characters.Count ? catalog.characters[i] : null;
                 var slot = characterSlots[i];
                 if (slot == null || definition == null) continue;
                 if (slot.label != null) slot.label.text = definition.displayName + (definition.id == character.id ? " ✓" : string.Empty);
-                if (slot.portrait != null) slot.portrait.sprite = definition.portrait;
+                if (slot.portrait != null && definition.portrait != null) slot.portrait.sprite = definition.portrait;
             }
         }
 
@@ -379,7 +409,7 @@ namespace MushroomSurvival.ClientUI
                 if (!hasItem) continue;
                 var item = visibleCosmetics[i];
                 if (slot.label != null) slot.label.text = $"{item.displayName}\n{(economy.Owns(item.id) ? "보유" : $"{item.price:N0} 잎")}";
-                if (slot.icon != null) slot.icon.sprite = item.icon;
+                if (slot.icon != null && item.icon != null) slot.icon.sprite = item.icon;
             }
             if (selectedCosmetic != null && !visibleCosmetics.Contains(selectedCosmetic)) selectedCosmetic = null;
             RefreshSelectedCosmetic();
@@ -390,20 +420,22 @@ namespace MushroomSurvival.ClientUI
         {
             if (selectedCosmetic == null)
             {
-                if (shopDetails != null) shopDetails.text = "상품을 선택하면 설명과 가격이 표시됩니다.";
-                if (cosmeticPreviewImage != null) cosmeticPreviewImage.sprite = null;
+                if (shopDetails != null) shopDetails.text = catalog.cosmetics == null || catalog.cosmetics.Count == 0 ? "등록된 상품이 없습니다." : "상품을 선택하세요.";
                 return;
             }
             var state = economy.Owns(selectedCosmetic.id) ? "보유 중" : $"가격: {selectedCosmetic.price:N0} 잎";
             if (shopDetails != null) shopDetails.text = $"{selectedCosmetic.displayName}\n{selectedCosmetic.description}\n{state}";
-            if (cosmeticPreviewImage != null) cosmeticPreviewImage.sprite = selectedCosmetic.previewSprite;
+            if (cosmeticPreviewImage != null && selectedCosmetic.previewSprite != null) cosmeticPreviewImage.sprite = selectedCosmetic.previewSprite;
         }
 
         // 선택 등수의 로컬 미리보기 보상을 표시합니다.
         private void RefreshReward()
         {
             if (rewardDetails != null)
-                rewardDetails.text = $"{selectedRewardRank}위 보상: {economy.RewardForRank(selectedRewardRank):N0} 잎\n실제 경기 결과와 연결되지 않은 미리보기입니다.";
+            {
+                var reward = economy.RewardForRank(selectedRewardRank);
+                rewardDetails.text = reward > 0 ? $"{selectedRewardRank}위 보상: {reward:N0} 잎" : "보상 정보 없음";
+            }
         }
 
         // Catalog의 아이템 설명을 안내 텍스트에 표시합니다.
@@ -440,3 +472,6 @@ namespace MushroomSurvival.ClientUI
         }
     }
 }
+
+
+
