@@ -1,0 +1,157 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6617ed59d9a9d64d9ba99aa5b71a1bd, type: 3}
+  m_Name: ClientMenuCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ClientUI.ClientMenuCatalog
+  startingCurrency: 500
+  rankRewards: f40100002c010000c800000064000000
+  characters:
+  - id: 0
+    displayName: "\uAC15\uC544\uC9C0"
+    description: "\uB9AC\uB354\uC2ED\uC774 \uAC15\uD558\uACE0 \uBA3C\uC800 \uB098\uC11C\uB294
+      \uCE90\uB9AD\uD130\uC785\uB2C8\uB2E4."
+    portrait: {fileID: 0}
+    hasAssignedSkill: 1
+  - id: 1
+    displayName: "\uACE0\uC591\uC774"
+    description: "\uC790\uAE30\uC8FC\uC7A5\uC774 \uAC15\uD558\uACE0 \uC6D0\uD558\uB294
+      \uB300\uB85C \uD589\uB3D9\uD569\uB2C8\uB2E4."
+    portrait: {fileID: 0}
+    hasAssignedSkill: 1
+  - id: 2
+    displayName: "\uD1A0\uB07C"
+    description: "\uC232\uC744 \uC870\uC0AC\uD558\uBA70 \uBE60\uB974\uAC8C \uB2EC\uB9BD\uB2C8\uB2E4."
+    portrait: {fileID: 0}
+    hasAssignedSkill: 1
+  - id: 3
+    displayName: "\uC624\uB9AC"
+    description: "\uBB3C\uC6C5\uB369\uC774\uB97C \uC88B\uC544\uD558\uACE0 \uC774\uB9AC\uC800\uB9AC
+      \uB3CC\uC544\uB2E4\uB2D9\uB2C8\uB2E4."
+    portrait: {fileID: 0}
+    hasAssignedSkill: 1
+  cosmetics:
+  - id: skin_default
+    kind: 0
+    character: 5
+    displayName: "\uAE30\uBCF8 \uC2A4\uD0A8"
+    description: "\uAE30\uBCF8 \uC678\uD615\uC785\uB2C8\uB2E4."
+    price: 0
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    characterAudio: {fileID: 0}
+    animatorState: 
+    materialOverrides: []
+  - id: voice_default
+    kind: 1
+    character: 5
+    displayName: "\uAE30\uBCF8 \uC0AC\uC6B4\uB4DC"
+    description: "\uAE30\uBCF8 \uCE90\uB9AD\uD130 \uC74C\uC131\uC785\uB2C8\uB2E4."
+    price: 0
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    characterAudio: {fileID: 0}
+    animatorState: 
+    materialOverrides: []
+  - id: pose_default
+    kind: 2
+    character: 5
+    displayName: "\uAE30\uBCF8 \uC2B9\uB9AC \uD3EC\uC988"
+    description: "\uAE30\uBCF8 \uC2B9\uB9AC \uBAA8\uC158\uC785\uB2C8\uB2E4."
+    price: 0
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    characterAudio: {fileID: 0}
+    animatorState: 
+    materialOverrides: []
+  - id: skin_forest
+    kind: 0
+    character: 5
+    displayName: "\uC232\uC758 \uC0B0\uCC45\uC790"
+    description: "\uC232 \uD14C\uB9C8 \uC2A4\uD0A8 \uBBF8\uB9AC\uBCF4\uAE30 \uD56D\uBAA9\uC785\uB2C8\uB2E4.
+      \uC2E4\uC81C Material\uC740 \uCD94\uD6C4 \uC5F0\uACB0\uD569\uB2C8\uB2E4."
+    price: 100
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    characterAudio: {fileID: 0}
+    animatorState: 
+    materialOverrides: []
+  - id: voice_forest
+    kind: 1
+    character: 5
+    displayName: "\uC232\uC758 \uBA54\uC544\uB9AC"
+    description: "\uCE90\uB9AD\uD130 \uC74C\uC131 \uBBF8\uB9AC\uBCF4\uAE30 \uD56D\uBAA9\uC785\uB2C8\uB2E4.
+      \uC2E4\uC81C \uC624\uB514\uC624\uB294 \uCD94\uD6C4 \uC5F0\uACB0\uD569\uB2C8\uB2E4."
+    price: 75
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    characterAudio: {fileID: 0}
+    animatorState: 
+    materialOverrides: []
+  - id: pose_forest
+    kind: 2
+    character: 5
+    displayName: "\uC232\uC758 \uC2B9\uB9AC"
+    description: "\uC2B9\uB9AC \uD3EC\uC988 \uBBF8\uB9AC\uBCF4\uAE30 \uD56D\uBAA9\uC785\uB2C8\uB2E4.
+      \uC2E4\uC81C Animator \uC0C1\uD0DC\uB294 \uCD94\uD6C4 \uC5F0\uACB0\uD569\uB2C8\uB2E4."
+    price: 120
+    icon: {fileID: 0}
+    previewSprite: {fileID: 0}
+    previewAudio: {fileID: 0}
+    characterAudio: {fileID: 0}
+    animatorState: 
+    materialOverrides: []
+  items:
+  - itemId: 001
+    displayName: "\uBB3C\uC6C5\uB369\uC774"
+    itemType: 0
+    iconSprite: {fileID: 0}
+    tileSprite: {fileID: 0}
+    activeDurationSeconds: -1
+    effectDescription: "\uBC14\uB2E5\uC5D0 \uC6D0\uD615 \uC6C5\uB369\uC774\uB97C
+      \uB9CC\uB4E4\uACE0, \uBC1F\uC740 \uD50C\uB808\uC774\uC5B4\uC758 \uC774\uB3D9
+      \uC18D\uB3C4\uB97C \uB0AE\uCDA5\uB2C8\uB2E4."
+    throwRange: 0
+    skillTileRange: 0
+    targetTag: 
+    objectLimit: 0
+    isDestroyOnCollision: 0
+  - itemId: 002
+    displayName: "\uC0AC\uACFC"
+    itemType: 1
+    iconSprite: {fileID: 0}
+    tileSprite: {fileID: 0}
+    activeDurationSeconds: -1
+    effectDescription: "\uB9DE\uC740 \uD50C\uB808\uC774\uC5B4\uB97C \uC77C\uC815
+      \uC2DC\uAC04 \uC2A4\uD134 \uC0C1\uD0DC\uB85C \uB9CC\uB4ED\uB2C8\uB2E4."
+    throwRange: 0
+    skillTileRange: 0
+    targetTag: 
+    objectLimit: 0
+    isDestroyOnCollision: 0
+  - itemId: 003
+    displayName: "\uBC14\uB098\uB098"
+    itemType: 0
+    iconSprite: {fileID: 0}
+    tileSprite: {fileID: 0}
+    activeDurationSeconds: -1
+    effectDescription: "\uBC14\uB2E5\uC5D0 \uC124\uCE58\uD558\uBA70 \uBC1F\uC740
+      \uD50C\uB808\uC774\uC5B4\uB97C \uBBF8\uB044\uB7EC\uC9C0\uAC8C \uD569\uB2C8\uB2E4."
+    throwRange: 0
+    skillTileRange: 0
+    targetTag: 
+    objectLimit: 0
+    isDestroyOnCollision: 0

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace MushroomSurvival.ClientUI
 {
+    // 캐릭터 버튼과 이름·초상화 표시 참조를 하나의 슬롯으로 묶습니다.
     [Serializable]
     public sealed class ClientMenuCharacterSlot
     {
@@ -14,6 +15,7 @@ namespace MushroomSurvival.ClientUI
         public Image portrait;
     }
 
+    // 상품 버튼과 이름·아이콘 표시 참조를 하나의 슬롯으로 묶습니다.
     [Serializable]
     public sealed class ClientMenuCosmeticSlot
     {
@@ -24,14 +26,17 @@ namespace MushroomSurvival.ClientUI
     }
 
     /// <summary>
-    /// Binds pre-existing scene UI to client data. All Canvas objects and controls are assigned in the Inspector.
-    /// This class never creates, clones, or destroys UI objects.
+    /// 씬에 미리 배치된 UI를 클라이언트 데이터에 연결합니다. Canvas와 컨트롤은 Inspector에서 지정합니다.
+    /// 이 클래스는 UI 오브젝트를 생성·복제·삭제하지 않습니다.
     /// </summary>
     public sealed class ClientMenuController : MonoBehaviour
     {
+        // 외부 로컬 코드가 방 생성/참가 미리보기 요청을 구독하는 이벤트입니다.
         public event Action<string, bool> RoomRequestPreview;
+        // 외부 로컬 코드가 메시지 제출 미리보기를 구독하는 이벤트입니다.
         public event Action<string> MessageSubmittedPreview;
 
+        // 데이터 에셋, Presenter 및 씬에 미리 만든 페이지·슬롯 참조입니다.
         [Header("Data and existing scene pages")]
         [SerializeField] private ClientMenuCatalog catalog;
         [SerializeField] private ClientCharacterPresenter characterPresenter;
@@ -40,6 +45,7 @@ namespace MushroomSurvival.ClientUI
         [SerializeField] private ClientMenuCosmeticSlot[] cosmeticSlots = Array.Empty<ClientMenuCosmeticSlot>();
         [SerializeField] private Text[] itemRows = Array.Empty<Text>();
 
+        // 화면에서 갱신할 텍스트와 이미지 참조입니다.
         [Header("Existing scene labels and preview images")]
         [SerializeField] private Text currencyLabel;
         [SerializeField] private Text noticeLabel;
@@ -51,6 +57,7 @@ namespace MushroomSurvival.ClientUI
         [SerializeField] private Text rewardDetails;
         [SerializeField] private Text messageHistory;
 
+        // 입력 필드, 음량 슬라이더와 미리보기 AudioSource입니다.
         [Header("Existing scene inputs, sliders, and audio source")]
         [SerializeField] private InputField roomCodeInput;
         [SerializeField] private InputField messageInput;
@@ -81,6 +88,7 @@ namespace MushroomSurvival.ClientUI
             public UnityAction<float> callback;
         }
 
+        // 프로필·경제 서비스를 초기화하고 기존 버튼과 슬라이더를 연결합니다.
         private void Awake()
         {
             if (catalog == null)
@@ -101,6 +109,7 @@ namespace MushroomSurvival.ClientUI
             RefreshAll();
         }
 
+        // 등록했던 이벤트 리스너를 해제합니다.
         private void OnDestroy()
         {
             if (profiles != null) profiles.Changed -= OnProfileChanged;
@@ -110,6 +119,7 @@ namespace MushroomSurvival.ClientUI
                 if (binding.slider != null) binding.slider.onValueChanged.RemoveListener(binding.callback);
         }
 
+        // ClientMenuAction이 붙은 기존 Button을 찾아 클릭 동작을 연결합니다.
         private void BindExistingButtons()
         {
             var actions = GetComponentsInChildren<ClientMenuAction>(true);
@@ -124,6 +134,7 @@ namespace MushroomSurvival.ClientUI
             }
         }
 
+        // 음량 슬라이더 최대 세 개를 로컬 프로필 값에 연결합니다.
         private void BindExistingSliders()
         {
             if (volumeSliders == null) return;
@@ -140,6 +151,7 @@ namespace MushroomSurvival.ClientUI
             }
         }
 
+        // 버튼에 지정된 동작 종류에 따라 해당 처리 메서드를 호출합니다.
         private void Dispatch(ClientMenuActionType action, int index)
         {
             switch (action)
@@ -162,6 +174,7 @@ namespace MushroomSurvival.ClientUI
             }
         }
 
+        // 지정 페이지 하나만 표시하고 해당 페이지의 데이터를 갱신합니다.
         private void ShowPage(int index)
         {
             if (pages == null || index < 0 || index >= pages.Length) return;
@@ -174,6 +187,7 @@ namespace MushroomSurvival.ClientUI
             if (index == 5) RefreshItems();
         }
 
+        // Catalog의 인덱스로 캐릭터를 선택하고 표시를 갱신합니다.
         private void SelectCharacter(int slotIndex)
         {
             if (catalog.characters == null || slotIndex < 0 || slotIndex >= catalog.characters.Count) return;
@@ -183,6 +197,7 @@ namespace MushroomSurvival.ClientUI
             RefreshCharacter();
         }
 
+        // 상점 분류를 바꾸고 해당 상품 목록을 다시 표시합니다.
         private void SelectShopCategory(int categoryIndex)
         {
             if (!Enum.IsDefined(typeof(ClientCosmeticKind), categoryIndex)) return;
@@ -191,6 +206,7 @@ namespace MushroomSurvival.ClientUI
             RefreshCosmetics();
         }
 
+        // 현재 상품 목록에서 선택 상품을 지정합니다.
         private void SelectCosmetic(int slotIndex)
         {
             if (slotIndex < 0 || slotIndex >= visibleCosmetics.Count) return;
@@ -198,6 +214,7 @@ namespace MushroomSurvival.ClientUI
             RefreshSelectedCosmetic();
         }
 
+        // 선택한 상품을 로컬 재화로 구매합니다.
         private void PurchaseSelected()
         {
             if (selectedCosmetic == null) { SetNotice("상품을 먼저 선택하세요."); return; }
@@ -206,6 +223,7 @@ namespace MushroomSurvival.ClientUI
             RefreshCosmetics();
         }
 
+        // 선택한 보유 상품을 현재 캐릭터에 장착합니다.
         private void EquipSelected()
         {
             if (selectedCosmetic == null) { SetNotice("상품을 먼저 선택하세요."); return; }
@@ -215,6 +233,7 @@ namespace MushroomSurvival.ClientUI
             RefreshCharacter();
         }
 
+        // 선택 상품에 연결된 오디오 미리보기를 재생합니다.
         private void PreviewSelectedAudio()
         {
             if (selectedCosmetic == null || selectedCosmetic.previewAudio == null || previewAudio == null)
@@ -228,6 +247,7 @@ namespace MushroomSurvival.ClientUI
             SetNotice(selectedCosmetic.displayName + " 미리 듣기");
         }
 
+        // Presenter에 장착한 승리 포즈의 미리보기를 요청합니다.
         private void PreviewEquippedVictoryPose()
         {
             SetNotice(characterPresenter != null && characterPresenter.PreviewVictoryPose()
@@ -235,6 +255,7 @@ namespace MushroomSurvival.ClientUI
                 : "장착한 포즈 또는 Animator 상태가 연결되지 않았습니다.");
         }
 
+        // Presenter에 장착 음성 재생을 요청합니다.
         private void PlayEquippedCharacterVoice()
         {
             SetNotice(characterPresenter != null && characterPresenter.PlayEquippedVoice()
@@ -242,6 +263,7 @@ namespace MushroomSurvival.ClientUI
                 : "장착한 캐릭터 사운드가 연결되지 않았습니다.");
         }
 
+        // 보상 화면에서 미리 볼 등수를 선택합니다.
         private void SelectRewardRank(int rank)
         {
             selectedRewardRank = Mathf.Clamp(rank, 1, Math.Max(1, catalog.rankRewards != null ? catalog.rankRewards.Length : 1));
@@ -249,6 +271,7 @@ namespace MushroomSurvival.ClientUI
             RefreshReward();
         }
 
+        // 로컬 미리보기 보상을 수령하고 결과 문구를 표시합니다.
         private void ClaimReward()
         {
             if (string.IsNullOrEmpty(rewardPreviewId)) SelectRewardRank(selectedRewardRank);
@@ -257,6 +280,7 @@ namespace MushroomSurvival.ClientUI
             RefreshReward();
         }
 
+        // 방 생성 또는 참가 미리보기 이벤트를 알리고 상태 문구를 갱신합니다.
         private void RequestRoom(bool create)
         {
             var code = roomCodeInput != null ? roomCodeInput.text.Trim() : string.Empty;
@@ -264,12 +288,14 @@ namespace MushroomSurvival.ClientUI
             if (lobbyStatus != null) lobbyStatus.text = create ? "방 생성 요청 미리보기" : $"방 코드 {code} 참가 요청 미리보기";
         }
 
+        // 네트워크와 무관한 로컬 준비 상태 표시를 전환합니다.
         private void ToggleReady()
         {
             locallyReady = !locallyReady;
             if (lobbyStatus != null) lobbyStatus.text = locallyReady ? "로컬 준비 완료" : "로컬 준비 해제";
         }
 
+        // 입력 메시지를 로컬 기록에 추가하고 최근 여섯 줄을 표시합니다.
         private void SubmitMessage()
         {
             var message = messageInput != null ? messageInput.text.Trim() : string.Empty;
@@ -281,6 +307,7 @@ namespace MushroomSurvival.ClientUI
             if (messageInput != null) messageInput.text = string.Empty;
         }
 
+        // 슬라이더 순서에 따라 전체·음악·효과음 값을 로컬 프로필에 저장합니다.
         private void SetVolume(int index, float value)
         {
             var profile = profiles.Profile;
@@ -293,6 +320,7 @@ namespace MushroomSurvival.ClientUI
             else profiles.SetVolumes(profile.masterVolume, profile.musicVolume, value);
         }
 
+        // 주요 메뉴 화면의 표시 데이터를 모두 갱신합니다.
         private void RefreshAll()
         {
             RefreshCurrency();
@@ -302,11 +330,13 @@ namespace MushroomSurvival.ClientUI
             RefreshItems();
         }
 
+        // 현재 로컬 재화 표시를 갱신합니다.
         private void RefreshCurrency()
         {
             if (currencyLabel != null && profiles != null) currencyLabel.text = $"{profiles.Profile.softCurrency:N0} 잎";
         }
 
+        // 선택 캐릭터 정보와 슬롯, 초상화 및 모델 미리보기를 갱신합니다.
         private void RefreshCharacter()
         {
             if (catalog == null || profiles == null) return;
@@ -330,6 +360,7 @@ namespace MushroomSurvival.ClientUI
             }
         }
 
+        // 현재 캐릭터와 상품 분류에 맞는 상점 슬롯을 갱신합니다.
         private void RefreshCosmetics()
         {
             visibleCosmetics.Clear();
@@ -354,6 +385,7 @@ namespace MushroomSurvival.ClientUI
             RefreshSelectedCosmetic();
         }
 
+        // 선택 상품의 상세 설명과 미리보기 이미지를 갱신합니다.
         private void RefreshSelectedCosmetic()
         {
             if (selectedCosmetic == null)
@@ -367,12 +399,14 @@ namespace MushroomSurvival.ClientUI
             if (cosmeticPreviewImage != null) cosmeticPreviewImage.sprite = selectedCosmetic.previewSprite;
         }
 
+        // 선택 등수의 로컬 미리보기 보상을 표시합니다.
         private void RefreshReward()
         {
             if (rewardDetails != null)
                 rewardDetails.text = $"{selectedRewardRank}위 보상: {economy.RewardForRank(selectedRewardRank):N0} 잎\n실제 경기 결과와 연결되지 않은 미리보기입니다.";
         }
 
+        // Catalog의 아이템 설명을 안내 텍스트에 표시합니다.
         private void RefreshItems()
         {
             for (var i = 0; i < itemRows.Length; i++)
@@ -384,12 +418,14 @@ namespace MushroomSurvival.ClientUI
             }
         }
 
+        // 코스메틱 ID를 이름으로 변환하며 찾지 못하면 기본값을 표시합니다.
         private string CosmeticName(string id)
         {
             var item = catalog.FindCosmetic(id);
             return item != null ? item.displayName : "기본";
         }
 
+        // 프로필이 바뀌면 관련 메뉴 표시를 다시 갱신합니다.
         private void OnProfileChanged(ClientProfile _)
         {
             RefreshCurrency();
@@ -397,6 +433,7 @@ namespace MushroomSurvival.ClientUI
             RefreshCosmetics();
         }
 
+        // 연결된 안내 텍스트에 메시지를 표시합니다.
         private void SetNotice(string message)
         {
             if (noticeLabel != null) noticeLabel.text = message;
