@@ -42,6 +42,8 @@ namespace MushroomSurvival.ClientUI
         [SerializeField] private ClientCharacterPresenter characterPresenter;
         [SerializeField] private GameObject[] pages = new GameObject[8];
         [SerializeField] private ClientMenuCharacterSlot[] characterSlots = Array.Empty<ClientMenuCharacterSlot>();
+        [SerializeField] private ClientMenuCosmeticSlot[] victoryPoseSlots = Array.Empty<ClientMenuCosmeticSlot>();
+        [SerializeField] private Text victoryPoseStatus;
         [SerializeField] private ClientMenuCosmeticSlot[] cosmeticSlots = Array.Empty<ClientMenuCosmeticSlot>();
         [SerializeField] private Text[] itemRows = Array.Empty<Text>();
 
@@ -66,6 +68,7 @@ namespace MushroomSurvival.ClientUI
         [SerializeField] private AudioSource previewAudio;
 
         private readonly List<ClientCosmeticDefinition> visibleCosmetics = new List<ClientCosmeticDefinition>();
+        private readonly List<ClientCosmeticDefinition> visibleVictoryPoses = new List<ClientCosmeticDefinition>();
         private readonly List<ButtonListener> buttonListeners = new List<ButtonListener>();
         private readonly List<SliderListener> sliderListeners = new List<SliderListener>();
         private UnityAction<int> languageListener;
@@ -181,6 +184,7 @@ namespace MushroomSurvival.ClientUI
             {
                 case ClientMenuActionType.OpenPage: ShowPage(index); break;
                 case ClientMenuActionType.SelectCharacter: SelectCharacter(index); break;
+                case ClientMenuActionType.SelectVictoryPose: SelectVictoryPose(index); break;
                 case ClientMenuActionType.SelectShopCategory: SelectShopCategory(index); break;
                 case ClientMenuActionType.SelectCosmeticSlot: SelectCosmetic(index); break;
                 case ClientMenuActionType.PurchaseSelected: PurchaseSelected(); break;
@@ -205,7 +209,7 @@ namespace MushroomSurvival.ClientUI
             for (var i = 0; i < pages.Length; i++)
                 if (pages[i] != null) pages[i].SetActive(i == index);
             SetNotice(string.Empty);
-            if (index == 1) RefreshCharacter();
+            if (index == 1) { RefreshCharacter(); RefreshVictoryPoses(); }
             if (index == 2) RefreshCosmetics();
             if (index == 6) RefreshReward();
             if (index == 5) RefreshItems();
@@ -219,8 +223,20 @@ namespace MushroomSurvival.ClientUI
             if (entry == null) return;
             profiles.SelectCharacter(entry.id);
             RefreshCharacter();
+            RefreshVictoryPoses();
         }
 
+        // 현재 캐릭터에 장착할 보유 승리 포즈를 선택합니다.
+        private void SelectVictoryPose(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= visibleVictoryPoses.Count) return;
+            var pose = visibleVictoryPoses[slotIndex];
+            if (pose == null) return;
+            economy.TryEquip(pose.id, out var message);
+            SetNotice(message);
+            RefreshCharacter();
+            RefreshVictoryPoses();
+        }
         // 상점 분류를 바꾸고 해당 상품 목록을 다시 표시합니다.
         private void SelectShopCategory(int categoryIndex)
         {
@@ -355,6 +371,7 @@ namespace MushroomSurvival.ClientUI
         {
             RefreshCurrency();
             RefreshCharacter();
+            RefreshVictoryPoses();
             RefreshCosmetics();
             RefreshReward();
             RefreshItems();
@@ -387,6 +404,40 @@ namespace MushroomSurvival.ClientUI
                 if (slot == null || definition == null) continue;
                 if (slot.label != null) slot.label.text = definition.displayName + (definition.id == character.id ? " ✓" : string.Empty);
                 if (slot.portrait != null && definition.portrait != null) slot.portrait.sprite = definition.portrait;
+            }
+        }
+
+        // 선택 캐릭터가 보유한 승리 포즈를 선택 목록에 표시합니다.
+        private void RefreshVictoryPoses()
+        {
+            visibleVictoryPoses.Clear();
+            var character = profiles != null ? profiles.Profile.selectedCharacter : ClientCharacterId.Any;
+            if (catalog != null && catalog.cosmetics != null)
+                foreach (var item in catalog.cosmetics)
+                    if (item != null && item.kind == ClientCosmeticKind.VictoryPose && economy.Owns(item.id) &&
+                        (item.character == ClientCharacterId.Any || item.character == character))
+                        visibleVictoryPoses.Add(item);
+
+            for (var i = 0; i < victoryPoseSlots.Length; i++)
+            {
+                var slot = victoryPoseSlots[i];
+                if (slot == null) continue;
+                var hasPose = i < visibleVictoryPoses.Count;
+                if (slot.root != null) slot.root.SetActive(hasPose);
+                if (!hasPose) continue;
+                var pose = visibleVictoryPoses[i];
+                if (slot.label != null) slot.label.text = pose.displayName;
+                if (slot.icon != null && pose.icon != null) slot.icon.sprite = pose.icon;
+                if (slot.button != null) slot.button.interactable = true;
+            }
+
+            if (victoryPoseStatus != null)
+            {
+                var loadout = profiles != null ? profiles.Profile.LoadoutFor(character) : null;
+                var equipped = loadout != null && catalog != null ? catalog.FindCosmetic(loadout.equippedVictoryPoseId) : null;
+                victoryPoseStatus.text = visibleVictoryPoses.Count == 0
+                    ? "선택 가능한 승리 포즈가 없습니다."
+                    : equipped != null ? $"현재 장착: {equipped.displayName}" : "승리 포즈를 선택하세요.";
             }
         }
 
@@ -472,6 +523,9 @@ namespace MushroomSurvival.ClientUI
         }
     }
 }
+
+
+
 
 
 

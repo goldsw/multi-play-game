@@ -20,7 +20,8 @@ namespace MushroomSurvival.ClientUI
         JoinRoomPreview,
         ToggleReadyPreview,
         SubmitMessagePreview,
-        LeaveRoomPreview
+        LeaveRoomPreview,
+        SelectVictoryPose
     }
 
     /// <summary>기존 씬 Button에 붙이고 Inspector에서 동작과 인덱스를 지정합니다.</summary>
@@ -32,3 +33,4 @@ namespace MushroomSurvival.ClientUI
         public int index;
     }
 }
+
