@@ -40,6 +40,8 @@ namespace MushroomSurvival
 
         private void OnDisable() => view?.Hide();
 
+        // 스킬이 누르는 순간 발동하는 동안 사거리 미리보기를 비활성화함.
+        /*
         private void LateUpdate()
         {
             if (!IsSpawned || !IsOwner || input?.IsHeld != true ||
@@ -112,5 +114,6 @@ namespace MushroomSurvival
             point = ray.GetPoint(distance);
             return true;
         }
+        */
     }
 }

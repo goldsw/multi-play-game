@@ -210,6 +210,9 @@ namespace MushroomSurvival.Editor
                 player.AddComponent<PlayerPositionCorrection>();
             SkillSceneSetup.ConfigurePlayer(player, input);
             ItemSceneSetup.ConfigurePlayer(player, input);
+            if (!player.TryGetComponent<Test_eliminated>(out var testEliminated))
+                testEliminated = player.AddComponent<Test_eliminated>();
+            testEliminated.Configure(input);
         }
 
         private static void ConfigureLobbyPreview(Scene scene)

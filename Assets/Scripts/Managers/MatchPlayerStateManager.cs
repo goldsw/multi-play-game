@@ -6,6 +6,7 @@ namespace MushroomSurvival
 {
     public sealed class MatchPlayerStateManager : MonoBehaviour
     {
+        private const double EliminationPresentationSeconds = 2d;
         private SkillCaster tagger;
         private readonly List<NetworkObject> participants = new();
         private readonly HashSet<ulong> contacts = new();
@@ -55,7 +56,8 @@ namespace MushroomSurvival
 
         public bool Eliminate(NetworkObject player)
         {
-            if (player == null || !player.IsSpawned || !player.IsPlayerObject ||
+            if (network == null || !network.IsServer || player == null || !participants.Contains(player) ||
+                !player.IsSpawned || !player.IsPlayerObject ||
                 player.gameObject.scene != gameObject.scene ||
                 !player.TryGetComponent<CharacterStateMachine>(out var state) || !state.IsServer || state.IsEliminated)
                 return false;
@@ -63,7 +65,14 @@ namespace MushroomSurvival
             if (tagger != null && tagger.NetworkObject == player)
                 ClearTagger();
 
-            state.SetEliminated();
+            int rank = 0;
+            foreach (var participant in participants)
+            {
+                if (participant != null && participant.IsSpawned &&
+                    participant.TryGetComponent<CharacterStateMachine>(out var character) && !character.IsEliminated)
+                    rank++;
+            }
+            state.SetEliminated(new EliminationResult(rank, network.ServerTime.Time + EliminationPresentationSeconds));
             GetComponent<EffectObjectManager>()?.DespawnOwned(player.OwnerClientId);
             return true;
         }
