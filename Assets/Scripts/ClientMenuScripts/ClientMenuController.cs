@@ -37,9 +37,10 @@ namespace MushroomSurvival.ClientUI
         public event Action<string> MessageSubmittedPreview;
 
         // 데이터 에셋, Presenter 및 씬에 미리 만든 페이지·슬롯 참조입니다.
-        [Header("Data and existing scene pages")]
+        [Header("Data and empty page groups")]
         [SerializeField] private ClientMenuCatalog catalog;
         [SerializeField] private ClientCharacterPresenter characterPresenter;
+        [Tooltip("Button actions activate the selected group and deactivate every other group.")]
         [SerializeField] private GameObject[] pages = new GameObject[8];
         [SerializeField] private ClientMenuCharacterSlot[] characterSlots = Array.Empty<ClientMenuCharacterSlot>();
         [SerializeField] private ClientMenuCosmeticSlot[] victoryPoseSlots = Array.Empty<ClientMenuCosmeticSlot>();
@@ -523,6 +524,9 @@ namespace MushroomSurvival.ClientUI
         }
     }
 }
+
+
+
 
 
 
