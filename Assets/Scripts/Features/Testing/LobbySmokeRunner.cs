@@ -122,6 +122,12 @@ namespace MushroomSurvival
                 Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; scene=InGame; phase=Playing; owner={network.LocalClientId}");
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-move") >= 0)
                     gameObject.AddComponent<MovementSmokeProbe>().Initialize(network);
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-end-match") >= 0)
+                {
+                    verifyingReturn = true;
+                    quitAt = Time.realtimeSinceStartup + 30f;
+                    _ = VerifyResultAsync();
+                }
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-ingame-return") >= 0)
                 {
                     verifyingReturn = true;
@@ -139,6 +145,43 @@ namespace MushroomSurvival
             {
                 Debug.LogError("MUSHROOM_SMOKE_FAILED phase=" + session.State.Status +
                     " count=" + session.State.PlayerCount + " message=" + session.State.Message);
+                Application.Quit(1);
+            }
+        }
+
+        private async Task VerifyResultAsync()
+        {
+            try
+            {
+                if (network.IsServer)
+                {
+                    await Task.Delay(1000);
+                    if (!FindFirstObjectByType<MatchPlayerStateManager>().EndMatchByExplosion())
+                        throw new InvalidOperationException("EndMatchByExplosion was rejected.");
+                }
+                var store = FindFirstObjectByType<MatchResultStore>();
+                float until = Time.realtimeSinceStartup + 20f;
+                while (Time.realtimeSinceStartup < until)
+                {
+                    var result = SceneManager.GetSceneByName(ResultSceneLoader.SceneName);
+                    if (result.isLoaded && !SceneManager.GetSceneByName(InGameSceneLoader.SceneName).isLoaded &&
+                        store.IsReady && store.Entries.Count == expectedPlayers)
+                    {
+                        Debug.Log($"MUSHROOM_RESULT_PASSED peer={network.LocalClientId}; status={session.State.Status}; " +
+                            "entries=" + string.Join(",", System.Linq.Enumerable.Select(store.Entries,
+                                entry => $"{entry.ClientId}/{entry.CharacterId}/{entry.Rank}")));
+                        if (network.IsServer)
+                            await Task.Delay(6000); // keep the host up until clients have verified too
+                        Application.Quit(0);
+                        return;
+                    }
+                    await Task.Yield();
+                }
+                throw new InvalidOperationException("Result scene or data did not arrive.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("MUSHROOM_SMOKE_FAILED " + exception.Message);
                 Application.Quit(1);
             }
         }
