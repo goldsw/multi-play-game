@@ -12,6 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e560e08d93eda44c8a5aa61ba2d5c0e, type: 3}
   m_Name: VictoryPoseCatalog
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.VictoryPoseCatalog
-  victoryPoses:
-  - {fileID: 0}
+  victoryPoses: []
   deathMotion: {fileID: 0}
