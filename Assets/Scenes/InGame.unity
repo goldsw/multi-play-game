@@ -161,6 +161,9 @@ GameObject:
   - component: {fileID: 430488165}
   - component: {fileID: 430488164}
   - component: {fileID: 430488163}
+  - component: {fileID: 430488166}
+  - component: {fileID: 430488168}
+  - component: {fileID: 430488167}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -242,6 +245,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &430488166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430488162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28d19ec6bda148208c44d899a82c63ec, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.LocalPlayerCameraFollow
+  followDistance: 18.868
 --- !u!1 &586789724
 GameObject:
   m_ObjectHideFlags: 0
@@ -1209,6 +1225,30 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
   kind: 2
+--- !u!114 &430488168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430488162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b676cc2a9d553544984bb238564b892, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SpectatorScreen
+--- !u!114 &430488167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430488162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c6acb58f0505714c8b1bfcc8e41c755, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SpectatorMode
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

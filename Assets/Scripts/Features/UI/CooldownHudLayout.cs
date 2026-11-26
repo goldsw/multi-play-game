@@ -10,8 +10,8 @@ namespace MushroomSurvival
         private Sprite disc;
         private Sprite ring;
 
-        public static GameObject Create(Transform parent, Action onSkillPressed, out CooldownSlot skill, out CooldownSlot item,
-            out ItemSlotView itemView)
+        public static GameObject Create(Transform parent, Action onSkillPressed, Action onItemPressed,
+            out CooldownSlot skill, out CooldownSlot item, out ItemSlotView itemView)
         {
             var root = new GameObject("In Game Cooldowns", typeof(RectTransform), typeof(Canvas),
                 typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -31,7 +31,7 @@ namespace MushroomSurvival
                 return Coverage(Mathf.Min(distance - 0.41f, 0.49f - distance));
             });
             skill = layout.CreateSlot("Skill Slot", 76f, 105f, onSkillPressed);
-            item = layout.CreateSlot("Item Slot", 60f, 39f);
+            item = layout.CreateSlot("Item Slot", 60f, 39f, onItemPressed);
             var itemRect = (RectTransform)item.transform;
             var stroke = AddImage(itemRect, "Item Held or in Use", layout.ring, new Color32(208, 26, 50, 255), 1f);
             itemView = item.gameObject.AddComponent<ItemSlotView>();
@@ -42,7 +42,7 @@ namespace MushroomSurvival
             return root;
         }
 
-        private CooldownSlot CreateSlot(string name, float size, float right, Action onPressed = null)
+        private CooldownSlot CreateSlot(string name, float size, float right, Action onPressed)
         {
             var slot = new GameObject(name, typeof(RectTransform));
             var rect = (RectTransform)slot.transform;
@@ -51,12 +51,8 @@ namespace MushroomSurvival
             rect.anchoredPosition = new Vector2(-right, 52f);
             rect.sizeDelta = Vector2.one * size;
 
-            var background = AddImage(rect, "Disc", disc, new Color32(251, 251, 247, 255), 1f);
-            if (onPressed != null)
-            {
-                background.raycastTarget = true;
-                slot.AddComponent<SkillSlotPress>().Configure(onPressed);
-            }
+            AddImage(rect, "Disc", disc, new Color32(251, 251, 247, 255), 1f).raycastTarget = true;
+            slot.AddComponent<CooldownSlotPress>().Configure(onPressed);
             AddImage(rect, "Ring Track", ring, new Color32(91, 92, 96, 255), 1f);
             var fill = AddImage(rect, "Cooldown Fill", ring, new Color32(208, 26, 50, 255), 1f);
             fill.type = Image.Type.Filled;

@@ -9,7 +9,7 @@ namespace MushroomSurvival
     public sealed class CharacterStateMachine : NetworkBehaviour
     {
         private readonly NetworkVariable<CharacterEffects> effectFlags = new();
-        private readonly NetworkVariable<bool> eliminated = new();
+        private readonly NetworkVariable<EliminationResult> elimination = new();
         private readonly NetworkVariable<double> castEndsAt = new();
         private EffectManager effects;
         private Vector3 previousPosition;
@@ -17,7 +17,8 @@ namespace MushroomSurvival
 
         public CharacterAction Action { get; private set; }
         public CharacterEffects Effects => effectFlags.Value;
-        public bool IsEliminated => eliminated.Value;
+        public EliminationResult Elimination => elimination.Value;
+        public bool IsEliminated => Elimination.Rank > 0;
         public bool StopsMovement => IsEliminated || (Effects & CharacterEffects.Stunned) != 0;
         public bool AllowsPlayerActions => IsSpawned && !IsEliminated &&
             (Effects & (CharacterEffects.Stunned | CharacterEffects.ForcedMovement)) == 0;
@@ -34,7 +35,7 @@ namespace MushroomSurvival
             previousPosition = transform.position;
             lastMovedAt = double.NegativeInfinity;
             effectFlags.OnValueChanged += OnEffectsChanged;
-            eliminated.OnValueChanged += OnEliminatedChanged;
+            elimination.OnValueChanged += OnEliminatedChanged;
             if (IsServer)
             {
                 effects.ActiveEffectsChanged += RefreshEffects;
@@ -48,17 +49,17 @@ namespace MushroomSurvival
         public override void OnNetworkDespawn()
         {
             effectFlags.OnValueChanged -= OnEffectsChanged;
-            eliminated.OnValueChanged -= OnEliminatedChanged;
+            elimination.OnValueChanged -= OnEliminatedChanged;
             effects.ActiveEffectsChanged -= RefreshEffects;
             TransitionTo(CharacterAction.Idle);
         }
 
-        internal void SetEliminated()
+        internal void SetEliminated(EliminationResult result)
         {
-            if (!IsSpawned || !IsServer || eliminated.Value)
+            if (!IsSpawned || !IsServer || IsEliminated)
                 return;
 
-            eliminated.Value = true;
+            elimination.Value = result;
             effects.ClearEffects();
         }
 
@@ -115,6 +116,7 @@ namespace MushroomSurvival
         private void OnEffectsChanged(CharacterEffects previous, CharacterEffects current) =>
             EffectsChanged?.Invoke(previous, current);
 
-        private void OnEliminatedChanged(bool previous, bool current) => EliminatedChanged?.Invoke(current);
+        private void OnEliminatedChanged(EliminationResult previous, EliminationResult current) =>
+            EliminatedChanged?.Invoke(current.Rank > 0);
     }
 }
