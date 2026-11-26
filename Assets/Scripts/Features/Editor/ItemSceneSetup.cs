@@ -54,9 +54,14 @@ namespace MushroomSurvival.Editor
             var prefab = PrefabUtility.LoadPrefabContents(path);
             try
             {
-                var sync = GetOrAdd<NetworkTransform>(prefab);
+                var previous = prefab.GetComponent<NetworkTransform>();
+                if (previous != null && !(previous is OwnerNetworkTransform))
+                    Object.DestroyImmediate(previous);
+                var sync = GetOrAdd<OwnerNetworkTransform>(prefab);
                 sync.SyncScaleX = sync.SyncScaleY = sync.SyncScaleZ = false;
                 sync.SyncRotAngleX = sync.SyncRotAngleY = sync.SyncRotAngleZ = false;
+                GetOrAdd<ItemBoxPhysics>(prefab);
+                prefab.GetComponent<NetworkObject>().DontDestroyWithOwner = true;
 
                 prefab.GetComponent<BoxCollider>().isTrigger = false;
                 var body = prefab.GetComponent<Rigidbody>();

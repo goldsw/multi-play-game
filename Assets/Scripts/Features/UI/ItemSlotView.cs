@@ -24,6 +24,8 @@ namespace MushroomSurvival
             Render();
         }
 
+        internal void RequestUse() => inventory?.RequestUse();
+
         public void Render()
         {
             var held = inventory != null ? inventory.Held : ItemKind.None;

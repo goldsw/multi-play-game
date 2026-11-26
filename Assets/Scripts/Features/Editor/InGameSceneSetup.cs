@@ -119,9 +119,10 @@ namespace MushroomSurvival.Editor
 
         private static void ConfigureGameCamera(Scene game)
         {
-            if (FindRoot(game, "Main Camera") == null)
+            var cameraObject = FindRoot(game, "Main Camera");
+            if (cameraObject == null)
             {
-                var cameraObject = CreateRoot(game, "Main Camera");
+                cameraObject = CreateRoot(game, "Main Camera");
                 cameraObject.tag = "MainCamera";
                 var camera = cameraObject.AddComponent<Camera>();
                 camera.transform.position = new Vector3(0f, 16f, -10f);
@@ -130,6 +131,10 @@ namespace MushroomSurvival.Editor
                 camera.orthographicSize = 10f;
                 cameraObject.AddComponent<AudioListener>();
             }
+            if (!cameraObject.TryGetComponent<LocalPlayerCameraFollow>(out _))
+                cameraObject.AddComponent<LocalPlayerCameraFollow>();
+            if (!cameraObject.TryGetComponent<SpectatorMode>(out _))
+                cameraObject.AddComponent<SpectatorMode>();
 
             if (FindRoot(game, "Directional Light") == null)
             {

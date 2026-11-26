@@ -34,6 +34,7 @@ GameObject:
   - component: {fileID: 2056415714897541504}
   - component: {fileID: 4789426785264130979}
   - component: {fileID: 258903623309377073}
+  - component: {fileID: 1592001175662904300}
   m_Layer: 0
   m_Name: CubePlayer
   m_TagString: Untagged
@@ -497,5 +498,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 583906fa8dfe6a547b3381ab2f45cc2d, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemInput
+  ShowTopMostFoldoutHeaderGroup: 1
+  inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &1592001175662904300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7642104388839635564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fae9fb5fcad0644eb2c55f519aaea0c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.Test_eliminated
   ShowTopMostFoldoutHeaderGroup: 1
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

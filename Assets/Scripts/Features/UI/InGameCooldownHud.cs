@@ -21,7 +21,7 @@ namespace MushroomSurvival
         {
             network = manager;
             lobby = state;
-            canvas = CooldownHudLayout.Create(transform, out var skill, out var item, out itemView);
+            canvas = CooldownHudLayout.Create(transform, RequestSkill, RequestItem, out var skill, out var item, out itemView);
             SkillSlot = skill;
             ItemSlot = item;
             canvas.SetActive(false);
@@ -69,6 +69,18 @@ namespace MushroomSurvival
 
             ItemSlot.Timer.Render(now);
             itemView.Render();
+        }
+
+        private void RequestSkill()
+        {
+            if (boundSkill != null && !SkillSlot.IsLocked)
+                caster.RequestCast();
+        }
+
+        private void RequestItem()
+        {
+            if (!ItemSlot.IsLocked)
+                itemView.RequestUse();
         }
 
         private void RenderSkillGauge(SkillDefinition skill, double now)

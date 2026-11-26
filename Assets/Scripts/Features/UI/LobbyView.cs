@@ -1,10 +1,23 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MushroomSurvival
 {
     public sealed class LobbyView : MonoBehaviour
     {
+        [SerializeField] private Canvas canvas;
+        [SerializeField] private Text heading;
+        [SerializeField] private Text playerCount;
+        [SerializeField] private Text message;
+        [SerializeField] private Button roomButton;
+        [SerializeField] private Button startButton;
+        [SerializeField] private Button[] characterButtons;
+        [SerializeField] private GameObject joinPopup;
+        [SerializeField] private InputField joinCode;
+        [SerializeField] private Button cancelButton;
+        [SerializeField] private Button joinButton;
+
         public event Action HostRequested;
         public event Action<string> JoinRequested;
         public event Action LeaveRequested;
@@ -12,69 +25,75 @@ namespace MushroomSurvival
 
         private SessionData state;
         private LobbyNetworkState networkState;
-        private bool joinPopupOpen;
-        private bool lastLobbyWasHost = true;
-        private string joinCode = string.Empty;
+        private Text roomLabel;
         private Font koreanFont;
-        private GUIStyle titleStyle;
-        private GUIStyle textStyle;
-        private GUIStyle buttonStyle;
-        private GUIStyle inputStyle;
-        private static readonly string[] CharacterNames = { "고양이", "오리", "강아지", "토끼", "다람쥐" };
+        private SkillCaster localCaster;
+        private bool lastLobbyWasHost = true;
 
-        public void ConfigureCharacterSelection(LobbyNetworkState lobby) => networkState = lobby;
+        public void ConfigureCanvas(Canvas lobbyCanvas, Text statusHeading, Text count, Text sessionMessage,
+            Button room, Button start, Button[] characters, GameObject popup, InputField code, Button cancel, Button join)
+        {
+            canvas = lobbyCanvas;
+            heading = statusHeading;
+            playerCount = count;
+            message = sessionMessage;
+            roomButton = room;
+            startButton = start;
+            characterButtons = characters;
+            joinPopup = popup;
+            joinCode = code;
+            cancelButton = cancel;
+            joinButton = join;
+        }
+
+        private void Awake()
+        {
+            roomLabel = roomButton.GetComponentInChildren<Text>();
+            koreanFont = Font.CreateDynamicFontFromOSFont(
+                new[] { "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR" }, 22);
+            if (koreanFont != null)
+            {
+                foreach (var label in canvas.GetComponentsInChildren<Text>(includeInactive: true))
+                    label.font = koreanFont;
+            }
+
+            roomButton.onClick.AddListener(UseRoomButton);
+            startButton.onClick.AddListener(() => StartRequested?.Invoke());
+            cancelButton.onClick.AddListener(CloseJoinPopup);
+            joinButton.onClick.AddListener(JoinRoom);
+            joinCode.onValueChanged.AddListener(UpdateJoinButton);
+            for (int index = 0; index < characterButtons.Length; index++)
+            {
+                int character = index;
+                characterButtons[index].onClick.AddListener(() => networkState?.SelectCharacter(character));
+            }
+            if (state != null)
+                Render();
+        }
+
+        public void ConfigureCharacterSelection(LobbyNetworkState lobby)
+        {
+            networkState = lobby;
+            if (roomLabel != null && state != null)
+                Render();
+        }
 
         public void Show(SessionData sessionState)
         {
             state = sessionState;
             if (state.Status == SessionStatus.Lobby)
                 lastLobbyWasHost = state.LocalIsHost;
+            if (state.Status != SessionStatus.Playing)
+                localCaster = null;
             if (state.Status != SessionStatus.Lobby || !state.LocalIsHost)
-                joinPopupOpen = false;
+                joinPopup.SetActive(false);
+            if (roomLabel != null)
+                Render();
         }
 
-        private void OnGUI()
+        private void Render()
         {
-            if (state == null || Screen.width <= 0 || Screen.height <= 0)
-                return;
-
-            EnsureStyles();
-            Matrix4x4 previousMatrix = GUI.matrix;
-            bool previousEnabled = GUI.enabled;
-            float scale = Mathf.Min(Screen.width / 1280f, Screen.height / 720f);
-            GUI.matrix = Matrix4x4.TRS(
-                new Vector3((Screen.width - 1280f * scale) / 2f,
-                    (Screen.height - 720f * scale) / 2f, 0f),
-                Quaternion.identity, Vector3.one * scale);
-
-            try
-            {
-                DrawStatus();
-                DrawRoomControls();
-                if (state.Status == SessionStatus.Lobby && !joinPopupOpen && networkState != null && networkState.IsSpawned)
-                    DrawCharacterSelection();
-                if (joinPopupOpen)
-                    DrawJoinPopup();
-            }
-            finally
-            {
-                GUI.enabled = previousEnabled;
-                GUI.matrix = previousMatrix;
-            }
-        }
-
-        private void DrawCharacterSelection()
-        {
-            int selected = networkState.LocalCharacterId;
-            int choice = GUI.SelectionGrid(new Rect(380, 651, 520, 46), selected, CharacterNames, 5, buttonStyle);
-            if (choice != selected)
-                networkState.SelectCharacter(choice);
-        }
-
-        private void DrawStatus()
-        {
-            GUI.Box(new Rect(20, 20, 420, 92), GUIContent.none);
-            string heading = state.Status switch
+            heading.text = state.Status switch
             {
                 SessionStatus.Lobby when !string.IsNullOrEmpty(state.JoinCode) => "방 코드  " + state.JoinCode,
                 SessionStatus.LoadingInGame => "경기장 로딩 중",
@@ -82,102 +101,89 @@ namespace MushroomSurvival
                 SessionStatus.Playing => MatchHeading(),
                 _ => state.Status.ToString()
             };
+            playerCount.text = $"인원  {state.PlayerCount} / {LobbySettings.PlayerCount}";
+            message.text = state.Message;
+            message.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(state.Message));
 
-            GUI.Label(new Rect(36, 29, 388, 40), heading, titleStyle);
-            GUI.Label(new Rect(36, 68, 388, 35),
-                "인원  " + state.PlayerCount + " / " + LobbySettings.PlayerCount, textStyle);
+            bool inLobby = state.Status == SessionStatus.Lobby;
+            bool playing = state.Status == SessionStatus.Playing;
+            bool retry = state.Status is SessionStatus.Offline or SessionStatus.Failed;
+            bool findRoom = lastLobbyWasHost && !playing;
+            bool popupOpen = joinPopup.activeSelf;
+            roomLabel.text = retry ? "다시 시도" : findRoom ? "방 찾기" : "방 나가기";
+            roomButton.interactable = (retry || inLobby || playing) && !popupOpen;
+            startButton.gameObject.SetActive(findRoom && !retry);
+            startButton.interactable = inLobby && !popupOpen && state.PlayerCount >= LobbySettings.MinimumPlayersToStart;
 
-            if (!string.IsNullOrEmpty(state.Message))
+            bool canSelect = inLobby && !popupOpen && networkState != null && networkState.IsSpawned;
+            int selected = canSelect ? networkState.LocalCharacterId : -1;
+            for (int index = 0; index < characterButtons.Length; index++)
             {
-                GUI.Box(new Rect(20, 124, 420, 82), GUIContent.none);
-                GUI.Label(new Rect(36, 132, 388, 66), state.Message, textStyle);
+                var button = characterButtons[index];
+                button.gameObject.SetActive(canSelect);
+                button.interactable = index != selected;
             }
+        }
+
+        private void UseRoomButton()
+        {
+            if (state.Status is SessionStatus.Offline or SessionStatus.Failed)
+            {
+                HostRequested?.Invoke();
+            }
+            else if (state.Status == SessionStatus.Lobby && state.LocalIsHost)
+            {
+                joinPopup.SetActive(true);
+                joinCode.SetTextWithoutNotify(string.Empty);
+                UpdateJoinButton(joinCode.text);
+                Render();
+                joinCode.ActivateInputField();
+            }
+            else
+            {
+                LeaveRequested?.Invoke();
+            }
+        }
+
+        private void UpdateJoinButton(string code) => joinButton.interactable = !string.IsNullOrWhiteSpace(code);
+
+        private void CloseJoinPopup()
+        {
+            joinPopup.SetActive(false);
+            Render();
+        }
+
+        private void JoinRoom()
+        {
+            string code = joinCode.text.Trim();
+            if (code.Length == 0)
+                return;
+
+            CloseJoinPopup();
+            JoinRequested?.Invoke(code);
+        }
+
+        private void LateUpdate()
+        {
+            if (state?.Status != SessionStatus.Playing)
+                return;
+
+            string current = MatchHeading();
+            if (heading.text != current)
+                heading.text = current;
         }
 
         private string MatchHeading()
         {
-            var player = networkState != null ? networkState.NetworkManager.LocalClient?.PlayerObject : null;
-            if (player == null || !player.TryGetComponent<SkillCaster>(out var caster))
+            if (localCaster == null && networkState != null && networkState.IsSpawned)
+            {
+                var player = networkState.NetworkManager.LocalClient?.PlayerObject;
+                if (player != null)
+                    localCaster = player.GetComponent<SkillCaster>();
+            }
+            if (localCaster == null)
                 return "경기 중";
-            return caster.IsTagger ? "경기 중 · 술래" : "경기 중 · 도망자";
-        }
-
-        private void DrawRoomControls()
-        {
-            Rect roomButton = new Rect(20, 650, 172, 50);
-            if (state.Status == SessionStatus.Offline || state.Status == SessionStatus.Failed)
-            {
-                if (GUI.Button(roomButton, "다시 시도", buttonStyle))
-                    HostRequested?.Invoke();
-                return;
-            }
-
-            bool previousEnabled = GUI.enabled;
-            bool inLobby = state.Status == SessionStatus.Lobby;
-            bool playing = state.Status == SessionStatus.Playing;
-            bool canUseRoom = inLobby || playing;
-            GUI.enabled = previousEnabled && canUseRoom && !joinPopupOpen;
-            if (GUI.Button(roomButton, lastLobbyWasHost && !playing ? "방 찾기" : "방 나가기", buttonStyle))
-            {
-                if (lastLobbyWasHost && !playing)
-                {
-                    joinCode = string.Empty;
-                    joinPopupOpen = true;
-                }
-                else
-                {
-                    LeaveRequested?.Invoke();
-                }
-            }
-
-            if (lastLobbyWasHost && !playing)
-            {
-                GUI.enabled = previousEnabled && inLobby && !joinPopupOpen &&
-                    state.PlayerCount >= LobbySettings.MinimumPlayersToStart;
-                if (GUI.Button(new Rect(1088, 650, 172, 50), "게임 시작", buttonStyle))
-                    StartRequested?.Invoke();
-            }
-
-            GUI.enabled = previousEnabled;
-        }
-
-        private void DrawJoinPopup()
-        {
-            GUI.Box(new Rect(430, 260, 420, 200), GUIContent.none);
-            GUI.Label(new Rect(454, 277, 372, 40), "참가할 방 코드", titleStyle);
-            joinCode = GUI.TextField(new Rect(454, 325, 372, 42), joinCode, 32, inputStyle);
-
-            if (GUI.Button(new Rect(454, 390, 178, 45), "취소", buttonStyle))
-                joinPopupOpen = false;
-
-            bool previousEnabled = GUI.enabled;
-            GUI.enabled = previousEnabled && !string.IsNullOrWhiteSpace(joinCode);
-            if (GUI.Button(new Rect(648, 390, 178, 45), "참가", buttonStyle))
-            {
-                joinPopupOpen = false;
-                JoinRequested?.Invoke(joinCode);
-            }
-            GUI.enabled = previousEnabled;
-        }
-
-        private void EnsureStyles()
-        {
-            if (titleStyle != null)
-                return;
-
-            koreanFont = Font.CreateDynamicFontFromOSFont(
-                new[] { "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR" }, 22);
-            titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 24, fontStyle = FontStyle.Bold };
-            textStyle = new GUIStyle(GUI.skin.label) { fontSize = 18, wordWrap = true };
-            buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 20 };
-            inputStyle = new GUIStyle(GUI.skin.textField) { fontSize = 22 };
-            if (koreanFont != null)
-            {
-                titleStyle.font = koreanFont;
-                textStyle.font = koreanFont;
-                buttonStyle.font = koreanFont;
-                inputStyle.font = koreanFont;
-            }
+            return localCaster.IsTagger ? "경기 중 · 술래" : "경기 중 · 도망자";
         }
 
         private void OnDestroy()

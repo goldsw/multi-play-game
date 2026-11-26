@@ -28,9 +28,9 @@ namespace MushroomSurvival
         public override void OnLostOwnership() => ReleaseInput();
         public override void OnNetworkDespawn() => ReleaseInput();
 
-        private void Update()
+        private void OnSkillPressed(InputAction.CallbackContext context)
         {
-            if (IsSpawned && IsOwner && action?.WasReleasedThisFrame() == true)
+            if (IsSpawned && IsOwner)
                 caster.RequestCast();
         }
 
@@ -40,12 +40,17 @@ namespace MushroomSurvival
                 return;
 
             action = inputActions.FindAction("Player/Skill", throwIfNotFound: true).Clone();
+            action.performed += OnSkillPressed;
             action.Enable();
         }
 
         private void ReleaseInput()
         {
-            action?.Dispose();
+            if (action == null)
+                return;
+
+            action.performed -= OnSkillPressed;
+            action.Dispose();
             action = null;
         }
     }

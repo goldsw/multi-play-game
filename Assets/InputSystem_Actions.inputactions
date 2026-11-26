@@ -66,7 +66,16 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": true
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TestEliminate",
+                    "type": "Button",
+                    "id": "f769151d-20dd-47fc-b6b4-738656c9d4d4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "UseItem",
@@ -106,6 +115,17 @@
                 }
             ],
             "bindings": [
+                {
+                    "name": "",
+                    "id": "ba3e0437-aa85-4a46-b33b-82ee3073546c",
+                    "path": "<Keyboard>/f8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "TestEliminate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
                 {
                     "name": "",
                     "id": "4067bfad-f691-4686-90aa-a4809cd18139",
