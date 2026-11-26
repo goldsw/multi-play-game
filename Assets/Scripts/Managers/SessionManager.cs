@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -12,6 +13,9 @@ namespace MushroomSurvival
         private LobbyNetworkState networkState;
         private NetworkPlayerSpawner playerSpawner;
         private InGameSceneLoader sceneLoader;
+        private ResultSceneLoader resultLoader;
+        private MatchResultStore matchResults;
+        private MatchPlayerStateManager matchState;
         private ISessionConnector connector;
         private SlotManager slotManager;
         private bool busy;
@@ -28,12 +32,16 @@ namespace MushroomSurvival
             NetworkManager network,
             LobbyNetworkState state,
             InGameSceneLoader loader,
+            ResultSceneLoader resultSceneLoader,
+            MatchResultStore resultStore,
             ISessionConnector sessionConnector,
             SlotManager slots)
         {
             networkManager = network;
             networkState = state;
             sceneLoader = loader;
+            resultLoader = resultSceneLoader;
+            matchResults = resultStore;
             connector = sessionConnector;
             slotManager = slots;
             sceneLoader.LoadCompleted += OnInGameLoaded;
@@ -191,11 +199,35 @@ namespace MushroomSurvival
             if (playerSpawner != null && playerSpawner.AllPlayersReady(networkManager, matchParticipants))
             {
                 playerSpawner.GetComponent<MatchItems>()?.Begin(networkState);
-                playerSpawner.GetComponent<MatchPlayerStateManager>()?.Begin(networkManager, matchParticipants);
+                matchResults.Clear();
+                matchState = playerSpawner.GetComponent<MatchPlayerStateManager>();
+                if (matchState != null)
+                {
+                    matchState.Begin(networkManager, matchParticipants, networkState);
+                    matchState.MatchEnded += OnMatchEnded;
+                }
                 networkState.PublishStatus(SessionStatus.Playing);
             }
             else if (Time.realtimeSinceStartup >= startDeadline)
                 FailSession("Player spawning timed out.");
+        }
+
+        // Host: publish the confirmed ranking, then move every peer to the Result scene.
+        private void OnMatchEnded(IReadOnlyList<MatchResultEntry> results)
+        {
+            if (busy || !networkManager.IsHost || networkState.Status != SessionStatus.Playing)
+                return;
+            matchResults.Publish(results);
+            networkState.PublishStatus(SessionStatus.Result);
+            if (!resultLoader.TryLoad(out var error))
+                FailSession(error);
+        }
+
+        private void DetachMatchState()
+        {
+            if (matchState != null)
+                matchState.MatchEnded -= OnMatchEnded;
+            matchState = null;
         }
 
         private void OnClientConnected(ulong clientId)
@@ -262,8 +294,12 @@ namespace MushroomSurvival
                     networkManager.Shutdown();
                 while (!destroyed && networkManager != null && networkManager.ShutdownInProgress)
                     await Task.Yield();
+                DetachMatchState();
                 if (!destroyed)
+                {
+                    await resultLoader.UnloadAsync();
                     await sceneLoader.UnloadAsync();
+                }
                 joinCode = "";
                 matchParticipants = Array.Empty<ulong>();
                 playerSpawner = null;
@@ -294,6 +330,8 @@ namespace MushroomSurvival
         private void OnDestroy()
         {
             destroyed = true;
+            DetachMatchState();
+            resultLoader?.Dispose();
             if (networkState != null)
                 networkState.Changed -= RefreshState;
             if (sceneLoader != null)

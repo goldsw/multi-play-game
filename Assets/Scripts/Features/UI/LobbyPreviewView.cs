@@ -24,14 +24,25 @@ namespace MushroomSurvival
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (scene.name == InGameSceneLoader.SceneName && lobbyPresentation != null)
+            if (IsMatchScene(scene) && lobbyPresentation != null)
                 lobbyPresentation.SetActive(false);
         }
 
         private void OnSceneUnloaded(Scene scene)
         {
-            if (scene.name == InGameSceneLoader.SceneName && lobbyPresentation != null)
+            // InGame -> Result unloads InGame while Result is loaded: keep the lobby camera off until both are gone.
+            if (IsMatchScene(scene) && lobbyPresentation != null && !IsLoaded(InGameSceneLoader.SceneName, scene) &&
+                !IsLoaded(ResultSceneLoader.SceneName, scene))
                 lobbyPresentation.SetActive(true);
+        }
+
+        private static bool IsMatchScene(Scene scene) =>
+            scene.name == InGameSceneLoader.SceneName || scene.name == ResultSceneLoader.SceneName;
+
+        private static bool IsLoaded(string name, Scene ignored)
+        {
+            var scene = SceneManager.GetSceneByName(name);
+            return scene.IsValid() && scene.isLoaded && scene != ignored;
         }
 
         public void Configure(GameObject[] slotPreviews)
