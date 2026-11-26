@@ -10,17 +10,17 @@ namespace MushroomSurvival.Editor
 {
     internal static class SkillSceneSetup
     {
-        private const string SkillPath = "Assets/Resources/Skills/SK004.asset";
+        private const string SkillPath = "Assets/Resources/test_Skills/SK004.asset";
         private const string EggPath = "Assets/Prefabs/DuckEgg.prefab";
-        private const string EggMaterialPath = "Assets/Resources/Skills/DuckEgg.mat";
-        private const string RangeMaterialPath = "Assets/Resources/Skills/SkillRange.mat";
-        private const string EffectMaterialPath = "Assets/Resources/Skills/StatusEffectIndicator.mat";
-        private const string FishSkillPath = "Assets/Resources/Skills/SK002.asset";
+        private const string EggMaterialPath = "Assets/Resources/test_Skills/DuckEgg.mat";
+        private const string RangeMaterialPath = "Assets/Resources/test_Skills/SkillRange.mat";
+        private const string EffectMaterialPath = "Assets/Resources/test_Skills/StatusEffectIndicator.mat";
+        private const string FishSkillPath = "Assets/Resources/test_Skills/SK002.asset";
         private const string FishPath = "Assets/Prefabs/FishProjectile.prefab";
-        private const string FishEffectPath = "Assets/Resources/Skills/FishSplash.asset";
-        private const string DogSkillPath = "Assets/Resources/Skills/SK001.asset";
-        private const string TaggerSkillPath = "Assets/Resources/Skills/SK006.asset";
-        private const string VisibilityEffectPath = "Assets/Resources/Skills/SquirrelInvisibility.asset";
+        private const string FishEffectPath = "Assets/Resources/test_Skills/FishSplash.asset";
+        private const string DogSkillPath = "Assets/Resources/test_Skills/SK001.asset";
+        private const string TaggerSkillPath = "Assets/Resources/test_Skills/SK006.asset";
+        private const string VisibilityEffectPath = "Assets/Resources/test_Skills/SquirrelInvisibility.asset";
 
         public static GameObject PrepareFish() =>
             PrepareProjectile<FishProjectile>(FishPath, FishSkillPath, new Vector3(0.23f, 0.20f, 0.55f));
@@ -65,7 +65,7 @@ namespace MushroomSurvival.Editor
 
         public static GameObject PrepareTaggerTrap() =>
             PrepareTrap<TaggerTrap>("Assets/Prefabs/TaggerTrap.prefab", TaggerSkillPath,
-                "Assets/Resources/Skills/TaggerTrap.mat", new Color(0.45f, 0.69f, 0.82f),
+                "Assets/Resources/test_Skills/TaggerTrap.mat", new Color(0.45f, 0.69f, 0.82f),
                 new Vector3(0.85f, 0.08f, 0.85f));
 
         private static GameObject PrepareTrap<T>(string path, string skillPath, string materialPath,
@@ -128,13 +128,13 @@ namespace MushroomSurvival.Editor
                 visibility = player.AddComponent<CharacterVisibility>();
 
             var runnerSkills = new[] { FishSkillPath, SkillPath, DogSkillPath,
-                "Assets/Resources/Skills/SK003.asset", "Assets/Resources/Skills/SK005.asset" };
+                "Assets/Resources/test_Skills/SK003.asset", "Assets/Resources/test_Skills/SK005.asset" };
             caster.Configure(runnerSkills.Select(AssetDatabase.LoadAssetAtPath<SkillDefinition>).ToArray(),
                 AssetDatabase.LoadAssetAtPath<SkillDefinition>(TaggerSkillPath));
             input.Configure(actions);
             preview.Configure(definition, AssetDatabase.LoadAssetAtPath<Material>(RangeMaterialPath));
             indicator.Configure(AssetDatabase.LoadAssetAtPath<Material>(EffectMaterialPath),
-                AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/Skills/DuckEggHit.wav"));
+                AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Resources/test_Skills/DuckEggHit.wav"));
             cameraEffects.Configure(new[] { AssetDatabase.LoadAssetAtPath<CameraEffectDefinition>(FishEffectPath) });
             visibility.Configure(AssetDatabase.LoadAssetAtPath<VisibilityEffectDefinition>(VisibilityEffectPath));
         }

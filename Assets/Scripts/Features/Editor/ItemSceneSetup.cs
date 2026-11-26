@@ -12,7 +12,7 @@ namespace MushroomSurvival.Editor
     internal static class ItemSceneSetup
     {
         private const string PrefabFolder = "Assets/Prefabs/Items/";
-        private const string AssetFolder = "Assets/Resources/Items/";
+        private const string AssetFolder = "Assets/Resources/test_Items/";
 
         public static GameObject[] PreparePrefabs()
         {
