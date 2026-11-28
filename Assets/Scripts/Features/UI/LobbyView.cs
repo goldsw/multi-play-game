@@ -81,6 +81,9 @@ namespace MushroomSurvival
         public void Show(SessionData sessionState)
         {
             state = sessionState;
+            // The result scene has its own presentation; the lobby UI returns with the Lobby state.
+            if (canvas != null)
+                canvas.enabled = state.Status != SessionStatus.Result;
             if (state.Status == SessionStatus.Lobby)
                 lastLobbyWasHost = state.LocalIsHost;
             if (state.Status != SessionStatus.Playing)
