@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace MushroomSurvival
 {
@@ -7,17 +10,39 @@ namespace MushroomSurvival
     [RequireComponent(typeof(LocalPlayerCameraFollow), typeof(SpectatorScreen))]
     public sealed class SpectatorMode : MonoBehaviour
     {
+        private readonly List<CharacterStateMachine> survivors = new();
         private LocalPlayerCameraFollow follow;
         private SpectatorScreen screen;
         private CharacterStateMachine localCharacter;
         private CharacterStateMachine watchedCharacter;
         private EliminationResult elimination;
         private bool spectating;
+        private bool celebrating;
+        private InputAction previousAction;
+        private InputAction nextAction;
+
+        public bool IsSpectating => spectating;
+        public bool IsCelebrating => celebrating;
+        public ulong WatchedClientId => watchedCharacter != null ? watchedCharacter.OwnerClientId : ulong.MaxValue;
 
         private void Awake()
         {
             follow = GetComponent<LocalPlayerCameraFollow>();
             screen = GetComponent<SpectatorScreen>();
+            previousAction = new InputAction("SpectatePrevious", InputActionType.Button, "<Mouse>/leftButton");
+            nextAction = new InputAction("SpectateNext", InputActionType.Button, "<Mouse>/rightButton");
+            previousAction.performed += _ => OnClick(-1);
+            nextAction.performed += _ => OnClick(1);
+        }
+
+        /// <summary>While the winner is shown: no grayscale, no target cycling, no spectator banner.</summary>
+        public void SetCelebrating(bool value)
+        {
+            if (celebrating == value)
+                return;
+            celebrating = value;
+            if (celebrating)
+                screen.Hide();
         }
 
         private void Update()
@@ -29,6 +54,9 @@ namespace MushroomSurvival
             if (local != localCharacter || (local == null && elimination.Rank > 0))
                 Bind(local);
 
+            if (celebrating)
+                return;
+
             if (local == null || elimination.Rank == 0 || network.ServerTime.Time < elimination.SpectateAt)
                 return;
 
@@ -36,9 +64,40 @@ namespace MushroomSurvival
             {
                 spectating = true;
                 screen.Show(elimination.Rank);
+                previousAction.Enable();
+                nextAction.Enable();
             }
             if (watchedCharacter == null || !watchedCharacter.IsSpawned || watchedCharacter.IsEliminated)
-                WatchSurvivor(network);
+            {
+                CollectSurvivors(network);
+                SetWatched(survivors.Count > 0 ? survivors[0] : null);
+            }
+        }
+
+        /// <summary>Moves to the previous (-1) or next (+1) survivor by OwnerClientId. Returns true if the target changed.</summary>
+        public bool CycleTarget(int direction)
+        {
+            var network = NetworkManager.Singleton;
+            if (!spectating || network == null)
+                return false;
+
+            CollectSurvivors(network);
+            if (survivors.Count < 2)
+                return false;
+
+            int index = survivors.IndexOf(watchedCharacter);
+            index = index < 0 ? 0 : (index + (direction < 0 ? -1 : 1) + survivors.Count) % survivors.Count;
+            SetWatched(survivors[index]);
+            return true;
+        }
+
+        private void OnClick(int direction)
+        {
+            if (celebrating)
+                return;
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return;
+            CycleTarget(direction);
         }
 
         private void Bind(CharacterStateMachine character)
@@ -50,6 +109,8 @@ namespace MushroomSurvival
             watchedCharacter = null;
             follow.SetSpectatorTarget(null);
             screen.Hide();
+            previousAction.Disable();
+            nextAction.Disable();
             spectating = false;
             elimination = default;
 
@@ -63,21 +124,31 @@ namespace MushroomSurvival
         private void OnEliminatedChanged(bool eliminated) =>
             elimination = eliminated ? localCharacter.Elimination : default;
 
-        private void WatchSurvivor(NetworkManager network)
+        private void CollectSurvivors(NetworkManager network)
         {
-            watchedCharacter = null;
+            survivors.Clear();
             foreach (var player in network.SpawnManager.SpawnedObjectsList)
             {
                 if (player == null || !player.IsSpawned || !player.IsPlayerObject ||
                     player.gameObject.scene != gameObject.scene ||
                     !player.TryGetComponent<CharacterStateMachine>(out var character) || character.IsEliminated)
                     continue;
-
-                if (watchedCharacter == null || player.OwnerClientId < watchedCharacter.OwnerClientId)
-                    watchedCharacter = character;
+                survivors.Add(character);
             }
+            survivors.Sort((a, b) => a.OwnerClientId.CompareTo(b.OwnerClientId));
+        }
 
-            follow.SetSpectatorTarget(watchedCharacter != null ? watchedCharacter.transform : null);
+        private void SetWatched(CharacterStateMachine character)
+        {
+            watchedCharacter = character;
+            follow.SetSpectatorTarget(character != null ? character.transform : null);
+            screen.SetWatching(character != null ? $"관전 중: 플레이어 {character.OwnerClientId + 1}" : string.Empty);
+        }
+
+        private void OnDestroy()
+        {
+            previousAction.Dispose();
+            nextAction.Dispose();
         }
 
         private void OnDisable() => Bind(null);

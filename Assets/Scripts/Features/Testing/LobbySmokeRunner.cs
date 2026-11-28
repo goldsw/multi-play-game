@@ -122,8 +122,14 @@ namespace MushroomSurvival
                 Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; scene=InGame; phase=Playing; owner={network.LocalClientId}");
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-move") >= 0)
                     gameObject.AddComponent<MovementSmokeProbe>().Initialize(network);
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-spectator-cycle") >= 0)
+                {
+                    quitAt = Time.realtimeSinceStartup + 40f;
+                    gameObject.AddComponent<SpectatorCycleSmokeProbe>().Initialize(network);
+                }
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-end-match") >= 0)
                 {
+                    gameObject.AddComponent<WinnerFocusSmokeProbe>().Initialize(network);
                     verifyingReturn = true;
                     quitAt = Time.realtimeSinceStartup + 30f;
                     _ = VerifyResultAsync();
@@ -170,6 +176,7 @@ namespace MushroomSurvival
                         Debug.Log($"MUSHROOM_RESULT_PASSED peer={network.LocalClientId}; status={session.State.Status}; " +
                             "entries=" + string.Join(",", System.Linq.Enumerable.Select(store.Entries,
                                 entry => $"{entry.ClientId}/{entry.CharacterId}/{entry.Rank}")));
+                        await Task.Delay(1000); // let WinnerFocusSmokeProbe report first
                         if (network.IsServer)
                             await Task.Delay(6000); // keep the host up until clients have verified too
                         Application.Quit(0);

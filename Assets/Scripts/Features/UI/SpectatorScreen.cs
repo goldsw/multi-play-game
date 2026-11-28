@@ -12,6 +12,7 @@ namespace MushroomSurvival
     {
         private GameObject overlay;
         private Text rankLabel;
+        private Text watchingLabel;
         private Font koreanFont;
         private Sprite gradient;
         private Volume volume;
@@ -36,6 +37,13 @@ namespace MushroomSurvival
             cameraData.volumeLayerMask = previousVolumeMask.value | (1 << volume.gameObject.layer);
             volume.enabled = true;
             overlay.SetActive(true);
+        }
+
+        public void SetWatching(string text)
+        {
+            if (overlay == null)
+                CreateOverlay();
+            watchingLabel.text = text;
         }
 
         public void Hide()
@@ -108,6 +116,19 @@ namespace MushroomSurvival
             rankLabel.alignment = TextAnchor.MiddleCenter;
             rankLabel.color = Color.white;
             rankLabel.raycastTarget = false;
+
+            var watching = new GameObject("Watching", typeof(RectTransform), typeof(Text));
+            var watchingRect = watching.GetComponent<RectTransform>();
+            watchingRect.SetParent(bannerRect, false);
+            watchingRect.anchorMin = watchingRect.anchorMax = watchingRect.pivot = new Vector2(0.5f, 1f);
+            watchingRect.anchoredPosition = new Vector2(0f, -92f);
+            watchingRect.sizeDelta = new Vector2(500f, 34f);
+            watchingLabel = watching.GetComponent<Text>();
+            watchingLabel.font = rankLabel.font;
+            watchingLabel.fontSize = 22;
+            watchingLabel.alignment = TextAnchor.MiddleCenter;
+            watchingLabel.color = new Color(1f, 1f, 1f, 0.85f);
+            watchingLabel.raycastTarget = false;
         }
 
         private static Sprite CreateGradient()
