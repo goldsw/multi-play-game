@@ -122,6 +122,11 @@ namespace MushroomSurvival
                 Debug.Log($"MUSHROOM_SMOKE_PASSED players={expectedPlayers}; scene=InGame; phase=Playing; owner={network.LocalClientId}");
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-move") >= 0)
                     gameObject.AddComponent<MovementSmokeProbe>().Initialize(network);
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-spectator-cycle") >= 0)
+                {
+                    quitAt = Time.realtimeSinceStartup + 40f;
+                    gameObject.AddComponent<SpectatorCycleSmokeProbe>().Initialize(network);
+                }
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-end-match") >= 0)
                 {
                     verifyingReturn = true;
