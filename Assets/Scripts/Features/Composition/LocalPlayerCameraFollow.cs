@@ -25,9 +25,14 @@ namespace MushroomSurvival
         private Vector3 focusVelocity;
         private bool initialized;
         private bool switching;
+        private Camera followCamera;
+        private float baseOrthographicSize;
 
         /// <summary>Default distance, or the active zoom override.</summary>
         public float FollowDistance => distanceOverride > 0f ? distanceOverride : followDistance;
+
+        /// <summary>Target the camera followed on the last frame (override, spectated or own player).</summary>
+        public Transform ActiveTarget => lastTarget;
 
         /// <summary>Spectated player. Ignored while an override target is set.</summary>
         public void SetSpectatorTarget(Transform target) => spectatorTarget = target;
@@ -39,6 +44,12 @@ namespace MushroomSurvival
         public void SetDistanceOverride(float distance) => distanceOverride = Mathf.Max(0.1f, distance);
 
         public void ClearDistanceOverride() => distanceOverride = -1f;
+
+        private void Awake()
+        {
+            followCamera = GetComponent<Camera>();
+            baseOrthographicSize = followCamera.orthographicSize;
+        }
 
         private void LateUpdate()
         {
@@ -76,6 +87,9 @@ namespace MushroomSurvival
             }
             lastTarget = target;
             transform.position = focus - transform.forward * currentDistance;
+            // An orthographic camera ignores distance, so the zoom scales its size by the same ratio.
+            if (followCamera.orthographic)
+                followCamera.orthographicSize = baseOrthographicSize * currentDistance / followDistance;
         }
     }
 }
