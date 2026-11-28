@@ -6,7 +6,7 @@ namespace MushroomSurvival
     public sealed class LobbyBootstrap : MonoBehaviour
     {
         [SerializeField] private NetworkManager networkManager;
-        [SerializeField] private LobbyNetworkState networkState;
+        [SerializeField] private SessionNetworkState networkState;
         [SerializeField] private SessionManager sessionManager;
         [SerializeField] private LobbyPresenter presenter;
         [SerializeField] private LobbyView view;
@@ -17,7 +17,7 @@ namespace MushroomSurvival
 
         public void Configure(
             NetworkManager network,
-            LobbyNetworkState state,
+            SessionNetworkState state,
             SessionManager manager,
             LobbyPresenter lobbyPresenter,
             LobbyView lobbyView)
@@ -45,11 +45,16 @@ namespace MushroomSurvival
                     : new DirectSessionConnector(networkManager);
             }
 #endif
-            sessionManager.Initialize(networkManager, networkState, new InGameSceneLoader(networkManager), connector, slots);
+            var resultStore = networkState.GetComponent<MatchResultStore>();
+            if (resultStore == null)
+                throw new System.InvalidOperationException("SessionNetworkState needs a MatchResultStore. Run Tools/Mushroom Survival/Create Multiplayer Lobby.");
+            sessionManager.Initialize(networkManager, networkState, new InGameSceneLoader(networkManager),
+                new ResultSceneLoader(networkManager), resultStore, connector, slots);
             presenter.Initialize(sessionManager, view, preview);
             view.ConfigureCharacterSelection(networkState);
             gameObject.AddComponent<InGameCooldownHud>().Configure(networkManager, networkState);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+            gameObject.AddComponent<Test_endMatch>().Configure(networkManager);
             if (smokeTest)
                 gameObject.AddComponent<LobbySmokeRunner>().Initialize(
                     sessionManager, networkManager, smokeHost, smokeCode);

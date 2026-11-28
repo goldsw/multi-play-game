@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,13 +12,20 @@ namespace MushroomSurvival
         private readonly List<NetworkObject> participants = new();
         private readonly HashSet<ulong> contacts = new();
         private NetworkManager network;
+        private SessionNetworkState sessionState;
+        private bool matchEnded;
 
-        public void Begin(NetworkManager manager, IReadOnlyList<ulong> playerIds)
+        // Host only. Raised once with the final ranking when the match is ended.
+        public event Action<IReadOnlyList<MatchResultEntry>> MatchEnded;
+
+        public void Begin(NetworkManager manager, IReadOnlyList<ulong> playerIds, SessionNetworkState state = null)
         {
             if (!manager.IsServer)
                 return;
 
             network = manager;
+            sessionState = state;
+            matchEnded = false;
             participants.Clear();
             foreach (ulong clientId in playerIds)
             {
@@ -25,7 +33,7 @@ namespace MushroomSurvival
                     participants.Add(client.PlayerObject);
             }
             if (participants.Count > 1)
-                SetTagger(participants[Random.Range(0, participants.Count)]);
+                SetTagger(participants[UnityEngine.Random.Range(0, participants.Count)]);
         }
 
         public bool SetTagger(NetworkObject player)
@@ -56,7 +64,7 @@ namespace MushroomSurvival
 
         public bool Eliminate(NetworkObject player)
         {
-            if (network == null || !network.IsServer || player == null || !participants.Contains(player) ||
+            if (network == null || !network.IsServer || matchEnded || player == null || !participants.Contains(player) ||
                 !player.IsSpawned || !player.IsPlayerObject ||
                 player.gameObject.scene != gameObject.scene ||
                 !player.TryGetComponent<CharacterStateMachine>(out var state) || !state.IsServer || state.IsEliminated)
@@ -77,9 +85,61 @@ namespace MushroomSurvival
             return true;
         }
 
+        // Entry point for the poison mushroom bomb rule (host only). The bomb carrier loses, the rest are
+        // ranked in participant order, and the final ranking is published through MatchEnded.
+        public bool EndMatchByExplosion()
+        {
+            if (network == null || !network.IsServer || network.ShutdownInProgress || matchEnded)
+                return false;
+
+            var alive = new List<NetworkObject>();
+            foreach (var participant in participants)
+            {
+                if (IsAlive(participant))
+                    alive.Add(participant);
+            }
+            if (alive.Count == 0)
+                return false;
+
+            // Worst rank first: the carrier, then the others from the back of the participant order.
+            var losers = new List<NetworkObject>();
+            if (alive.Count > 1 && tagger != null && alive.Contains(tagger.NetworkObject))
+            {
+                losers.Add(tagger.NetworkObject);
+                alive.Remove(tagger.NetworkObject);
+            }
+            for (int index = alive.Count - 1; index > 0; index--)
+                losers.Add(alive[index]);
+            foreach (var loser in losers)
+                Eliminate(loser);
+
+            var results = new List<MatchResultEntry>();
+            var lobbySlots = sessionState != null && sessionState.IsSpawned ? sessionState.GetSlots() : Array.Empty<LobbySlotData>();
+            foreach (var participant in participants)
+            {
+                if (participant == null || !participant.TryGetComponent<CharacterStateMachine>(out var state))
+                    continue;
+
+                ulong clientId = participant.OwnerClientId;
+                int slot = Array.FindIndex(lobbySlots, entry => entry.Occupied && entry.ClientId == clientId);
+                int characterId = slot >= 0 ? lobbySlots[slot].CharacterId : LobbySettings.DefaultCharacterId;
+                results.Add(new MatchResultEntry(clientId, characterId, state.IsEliminated ? state.Elimination.Rank : 1));
+            }
+            results.Sort((left, right) => left.Rank.CompareTo(right.Rank));
+
+            matchEnded = true;
+            ClearTagger();
+            MatchEnded?.Invoke(results);
+            return true;
+        }
+
+        private static bool IsAlive(NetworkObject player) =>
+            player != null && player.IsSpawned && player.TryGetComponent<CharacterStateMachine>(out var state) &&
+            !state.IsEliminated;
+
         private void FixedUpdate()
         {
-            if (network == null || !network.IsServer || network.ShutdownInProgress ||
+            if (network == null || !network.IsServer || network.ShutdownInProgress || matchEnded ||
                 tagger == null || !tagger.IsSpawned)
                 return;
 

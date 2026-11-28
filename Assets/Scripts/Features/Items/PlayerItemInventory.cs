@@ -12,7 +12,7 @@ namespace MushroomSurvival
         private readonly NetworkVariable<bool> inUse = new(
             false, NetworkVariableReadPermission.Owner);
         private ItemWorld world;
-        private LobbyNetworkState lobby;
+        private SessionNetworkState sessionState;
         private CharacterStateMachine character;
         private RigidbodyMovement movement;
 
@@ -25,15 +25,15 @@ namespace MushroomSurvival
             movement = GetComponent<RigidbodyMovement>();
         }
 
-        internal void Initialize(ItemWorld itemWorld, LobbyNetworkState state)
+        internal void Initialize(ItemWorld itemWorld, SessionNetworkState state)
         {
             world = itemWorld;
-            lobby = state;
+            sessionState = state;
         }
 
         internal bool TryGrant(ItemKind kind)
         {
-            if (!IsServer || !IsSpawned || lobby == null || lobby.Status != SessionStatus.Playing ||
+            if (!IsServer || !IsSpawned || sessionState == null || sessionState.Status != SessionStatus.Playing ||
                 character.IsEliminated || Held != ItemKind.None || kind == ItemKind.None)
                 return false;
 
@@ -51,7 +51,7 @@ namespace MushroomSurvival
         private void UseRpc(ItemKind requested, Vector2 facing)
         {
             if (requested == ItemKind.None || Held != requested || !character.AllowsItemUse ||
-                lobby == null || lobby.Status != SessionStatus.Playing || world == null ||
+                sessionState == null || sessionState.Status != SessionStatus.Playing || world == null ||
                 !float.IsFinite(facing.sqrMagnitude) || facing.sqrMagnitude < 0.01f)
                 return;
 

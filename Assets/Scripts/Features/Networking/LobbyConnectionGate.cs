@@ -6,13 +6,13 @@ namespace MushroomSurvival
     public sealed class LobbyConnectionGate : MonoBehaviour
     {
         private NetworkManager network;
-        private LobbyNetworkState state;
+        private SessionNetworkState state;
         private SlotManager slotManager;
 
-        public void Initialize(NetworkManager manager, LobbyNetworkState lobbyState, SlotManager slots)
+        public void Initialize(NetworkManager manager, SessionNetworkState sessionState, SlotManager slots)
         {
             network = manager;
-            state = lobbyState;
+            state = sessionState;
             slotManager = slots;
             network.ConnectionApprovalCallback += Approve;
         }

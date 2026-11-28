@@ -11,12 +11,12 @@ namespace MushroomSurvival
         [SerializeField] private NetworkObject playerPrefab;
         [SerializeField] private Transform[] spawnPoints;
         private EffectObjectManager effectObjects;
-        private LobbyNetworkState lobby;
+        private SessionNetworkState sessionState;
 
-        public void InitializeSkills(EffectObjectManager manager, LobbyNetworkState state)
+        public void InitializeSkills(EffectObjectManager manager, SessionNetworkState state)
         {
             effectObjects = manager;
-            lobby = state;
+            sessionState = state;
         }
 
         public void Configure(NetworkObject prefab, Transform[] positions)
@@ -35,7 +35,7 @@ namespace MushroomSurvival
 
             var spawned = new List<NetworkObject>();
             var availablePoints = new List<Transform>(spawnPoints);
-            var lobbySlots = lobby != null ? lobby.GetSlots() : Array.Empty<LobbySlotData>();
+            var lobbySlots = sessionState != null ? sessionState.GetSlots() : Array.Empty<LobbySlotData>();
             var itemWorld = GetComponent<ItemWorld>();
             try
             {
@@ -54,10 +54,10 @@ namespace MushroomSurvival
                     {
                         int lobbyIndex = Array.FindIndex(lobbySlots, entry => entry.Occupied && entry.ClientId == clientId);
                         int character = lobbyIndex >= 0 ? lobbySlots[lobbyIndex].CharacterId : LobbySettings.DefaultCharacterId;
-                        caster.Initialize(effectObjects, lobby, character);
+                        caster.Initialize(effectObjects, sessionState, character);
                     }
                     if (player.TryGetComponent<PlayerItemInventory>(out var inventory))
-                        inventory.Initialize(itemWorld, lobby);
+                        inventory.Initialize(itemWorld, sessionState);
                     player.SpawnAsPlayerObject(clientId, destroyWithScene: true);
                 }
             }

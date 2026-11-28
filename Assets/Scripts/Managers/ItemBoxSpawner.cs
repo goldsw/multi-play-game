@@ -16,20 +16,20 @@ namespace MushroomSurvival
 
         private readonly List<ItemBox> pool = new(PoolCapacity);
         private ItemMap map;
-        private LobbyNetworkState lobby;
+        private SessionNetworkState sessionState;
         private double nextWave;
         private bool wasPlaying;
 
-        internal bool IsMatchPlaying => lobby != null && lobby.Status == SessionStatus.Playing;
+        internal bool IsMatchPlaying => sessionState != null && sessionState.Status == SessionStatus.Playing;
         internal bool CanLandAt(Vector3 floor) => map.TryGetSurface(floor, out var point) &&
             Mathf.Abs(point.y - floor.y) <= 0.05f;
 
         public void Configure(ItemBox prefab) => boxPrefab = prefab;
 
-        public void Initialize(ItemMap itemMap, LobbyNetworkState lobbyState)
+        public void Initialize(ItemMap itemMap, SessionNetworkState state)
         {
             map = itemMap;
-            lobby = lobbyState;
+            sessionState = state;
         }
 
         public override void OnNetworkSpawn()

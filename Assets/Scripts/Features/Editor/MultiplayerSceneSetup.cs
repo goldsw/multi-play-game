@@ -62,6 +62,11 @@ namespace MushroomSurvival.Editor
                 ConfigureLobbyPreview(loadedScene);
                 LobbyCanvasSetup.Configure(loadedScene);
                 InGameSceneSetup.Configure(loadedScene, cachedPrefab.GetComponent<NetworkObject>());
+                var existingState = loadedScene.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<SessionNetworkState>()).Single();
+                if (!existingState.TryGetComponent<MatchResultStore>(out _))
+                    existingState.gameObject.AddComponent<MatchResultStore>();
+                ResultSceneSetup.Configure();
                 EditorUtility.SetDirty(sceneNetwork);
                 EditorSceneManager.SaveScene(loadedScene);
                 if (!wasLoaded)
@@ -129,9 +134,10 @@ namespace MushroomSurvival.Editor
             network.NetworkConfig.Prefabs.NetworkPrefabsLists.Clear();
             network.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabs);
 
-            var stateObject = new GameObject("LobbyNetworkState");
+            var stateObject = new GameObject("SessionNetworkState");
             stateObject.AddComponent<NetworkObject>();
-            var state = stateObject.AddComponent<LobbyNetworkState>();
+            var state = stateObject.AddComponent<SessionNetworkState>();
+            stateObject.AddComponent<MatchResultStore>();
 
             var roots = new GameObject("LobbyComposition");
             var manager = roots.AddComponent<SessionManager>();
@@ -158,6 +164,7 @@ namespace MushroomSurvival.Editor
             LobbyCanvasSetup.Configure(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
             InGameSceneSetup.Configure(scene, playerPrefab.GetComponent<NetworkObject>());
+            ResultSceneSetup.Configure();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             var existingScenes = EditorBuildSettings.scenes.Where(item => item.path != ScenePath);
@@ -176,7 +183,7 @@ namespace MushroomSurvival.Editor
         {
             CreateScene();
             var report = BuildPipeline.BuildPlayer(
-                new[] { ScenePath, InGameSceneSetup.ScenePath },
+                new[] { ScenePath, InGameSceneSetup.ScenePath, ResultSceneSetup.ScenePath },
                 "Builds/MultiplayerSmoke/MushroomSurvival.exe",
                 BuildTarget.StandaloneWindows64,
                 BuildOptions.Development);
