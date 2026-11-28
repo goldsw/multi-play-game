@@ -135,6 +135,8 @@ namespace MushroomSurvival.Editor
                 cameraObject.AddComponent<LocalPlayerCameraFollow>();
             if (!cameraObject.TryGetComponent<SpectatorMode>(out _))
                 cameraObject.AddComponent<SpectatorMode>();
+            if (!cameraObject.TryGetComponent<WinnerFocus>(out _))
+                cameraObject.AddComponent<WinnerFocus>();
 
             if (FindRoot(game, "Directional Light") == null)
             {

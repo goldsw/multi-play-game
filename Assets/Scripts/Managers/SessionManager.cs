@@ -9,6 +9,9 @@ namespace MushroomSurvival
 {
     public sealed class SessionManager : MonoBehaviour
     {
+        [SerializeField, Min(0f), Tooltip("Seconds the winner is shown in the match scene before the Result scene loads.")]
+        private float winnerCelebrationSeconds = 3f;
+
         private NetworkManager networkManager;
         private SessionNetworkState networkState;
         private NetworkPlayerSpawner playerSpawner;
@@ -24,6 +27,8 @@ namespace MushroomSurvival
         private ulong[] matchParticipants = Array.Empty<ulong>();
         private float startDeadline;
         private bool inGameLoaded;
+        private IReadOnlyList<MatchResultEntry> pendingResults;
+        private double pendingResultAt;
 
         public SessionData State { get; private set; } = new(SessionStatus.Offline);
         public event Action<SessionData> StateChanged;
@@ -186,6 +191,12 @@ namespace MushroomSurvival
         {
             if (busy || networkManager == null || !networkManager.IsHost || !networkState.IsSpawned)
                 return;
+            if (pendingResults != null)
+            {
+                if (networkManager.ServerTime.Time >= pendingResultAt)
+                    ShowResult(pendingResults);
+                return;
+            }
             if (networkState.Status == SessionStatus.LoadingInGame)
             {
                 if (inGameLoaded)
@@ -200,6 +211,8 @@ namespace MushroomSurvival
             {
                 playerSpawner.GetComponent<MatchItems>()?.Begin(networkState);
                 matchResults.Clear();
+                networkState.PublishWinner(default);
+                pendingResults = null;
                 matchState = playerSpawner.GetComponent<MatchPlayerStateManager>();
                 if (matchState != null)
                 {
@@ -212,11 +225,26 @@ namespace MushroomSurvival
                 FailSession("Player spawning timed out.");
         }
 
-        // Host: publish the confirmed ranking, then move every peer to the Result scene.
+        // Host: announce the winner (Rank 1) to every peer, then move all of them to the Result scene
+        // once the celebration time (host clock) has passed.
         private void OnMatchEnded(IReadOnlyList<MatchResultEntry> results)
         {
-            if (busy || !networkManager.IsHost || networkState.Status != SessionStatus.Playing)
+            if (busy || !networkManager.IsHost || networkState.Status != SessionStatus.Playing || pendingResults != null)
                 return;
+            var winner = results.FirstOrDefault(entry => entry.Rank == 1);
+            if (winnerCelebrationSeconds <= 0f || !results.Any(entry => entry.Rank == 1))
+            {
+                ShowResult(results);
+                return;
+            }
+            pendingResults = results;
+            pendingResultAt = networkManager.ServerTime.Time + winnerCelebrationSeconds;
+            networkState.PublishWinner(new WinnerAnnouncement(winner.ClientId, pendingResultAt));
+        }
+
+        private void ShowResult(IReadOnlyList<MatchResultEntry> results)
+        {
+            pendingResults = null;
             matchResults.Publish(results);
             networkState.PublishStatus(SessionStatus.Result);
             if (!resultLoader.TryLoad(out var error))
@@ -302,6 +330,7 @@ namespace MushroomSurvival
                 }
                 joinCode = "";
                 matchParticipants = Array.Empty<ulong>();
+                pendingResults = null;
                 playerSpawner = null;
                 inGameLoaded = false;
                 slotManager.Clear();

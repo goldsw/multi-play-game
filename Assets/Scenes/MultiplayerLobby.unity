@@ -331,6 +331,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90ee46bfaafa84543ba22da70b79a56f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SessionManager
+  winnerCelebrationSeconds: 3
 --- !u!4 &153075898
 Transform:
   m_ObjectHideFlags: 0

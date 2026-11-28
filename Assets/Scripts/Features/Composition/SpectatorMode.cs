@@ -17,10 +17,12 @@ namespace MushroomSurvival
         private CharacterStateMachine watchedCharacter;
         private EliminationResult elimination;
         private bool spectating;
+        private bool celebrating;
         private InputAction previousAction;
         private InputAction nextAction;
 
         public bool IsSpectating => spectating;
+        public bool IsCelebrating => celebrating;
         public ulong WatchedClientId => watchedCharacter != null ? watchedCharacter.OwnerClientId : ulong.MaxValue;
 
         private void Awake()
@@ -33,6 +35,16 @@ namespace MushroomSurvival
             nextAction.performed += _ => OnClick(1);
         }
 
+        /// <summary>While the winner is shown: no grayscale, no target cycling, no spectator banner.</summary>
+        public void SetCelebrating(bool value)
+        {
+            if (celebrating == value)
+                return;
+            celebrating = value;
+            if (celebrating)
+                screen.Hide();
+        }
+
         private void Update()
         {
             var network = NetworkManager.Singleton;
@@ -41,6 +53,9 @@ namespace MushroomSurvival
                 ? player.GetComponent<CharacterStateMachine>() : null;
             if (local != localCharacter || (local == null && elimination.Rank > 0))
                 Bind(local);
+
+            if (celebrating)
+                return;
 
             if (local == null || elimination.Rank == 0 || network.ServerTime.Time < elimination.SpectateAt)
                 return;
@@ -78,6 +93,8 @@ namespace MushroomSurvival
 
         private void OnClick(int direction)
         {
+            if (celebrating)
+                return;
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
                 return;
             CycleTarget(direction);
