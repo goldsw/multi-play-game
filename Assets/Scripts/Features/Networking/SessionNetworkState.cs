@@ -6,10 +6,13 @@ namespace MushroomSurvival
     public sealed class SessionNetworkState : NetworkBehaviour
     {
         private readonly NetworkVariable<SessionStatus> status = new(SessionStatus.Lobby);
+        private readonly NetworkVariable<WinnerAnnouncement> winner = new();
         private NetworkList<LobbySlotData> slots;
         private SlotManager slotManager;
 
         public event Action Changed;
+        // Raised on every peer when the winner announcement is published or cleared.
+        public event Action WinnerChanged;
         public int PlayerCount
         {
             get
@@ -22,6 +25,7 @@ namespace MushroomSurvival
             }
         }
         public SessionStatus Status => status.Value;
+        public WinnerAnnouncement Winner => IsSpawned ? winner.Value : default;
         public int LocalCharacterId
         {
             get
@@ -50,9 +54,11 @@ namespace MushroomSurvival
                 for (int index = 0; index < LobbySettings.PlayerCount; index++)
                     slots.Add(slotManager.GetSlot(index));
                 status.Value = SessionStatus.Lobby;
+                winner.Value = default;
             }
             slots.OnListChanged += OnSlotChanged;
             status.OnValueChanged += OnStatusChanged;
+            winner.OnValueChanged += OnWinnerChanged;
             Changed?.Invoke();
         }
 
@@ -60,6 +66,7 @@ namespace MushroomSurvival
         {
             slots.OnListChanged -= OnSlotChanged;
             status.OnValueChanged -= OnStatusChanged;
+            winner.OnValueChanged -= OnWinnerChanged;
             Changed?.Invoke();
         }
 
@@ -85,6 +92,13 @@ namespace MushroomSurvival
             status.Value = phase;
         }
 
+        public void PublishWinner(WinnerAnnouncement announcement)
+        {
+            if (!IsServer)
+                throw new InvalidOperationException("Only the host can publish the winner.");
+            winner.Value = announcement;
+        }
+
         public void SelectCharacter(int characterId)
         {
             if (IsSpawned && IsClient && Status == SessionStatus.Lobby)
@@ -104,6 +118,7 @@ namespace MushroomSurvival
         }
 
         private void OnSlotChanged(NetworkListEvent<LobbySlotData> change) => Changed?.Invoke();
+        private void OnWinnerChanged(WinnerAnnouncement previous, WinnerAnnouncement current) => WinnerChanged?.Invoke();
         private void OnStatusChanged(SessionStatus previous, SessionStatus current) => Changed?.Invoke();
     }
 }
