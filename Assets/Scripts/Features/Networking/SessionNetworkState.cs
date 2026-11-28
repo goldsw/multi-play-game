@@ -3,7 +3,7 @@ using Unity.Netcode;
 
 namespace MushroomSurvival
 {
-    public sealed class LobbyNetworkState : NetworkBehaviour
+    public sealed class SessionNetworkState : NetworkBehaviour
     {
         private readonly NetworkVariable<SessionStatus> status = new(SessionStatus.Lobby);
         private NetworkList<LobbySlotData> slots;

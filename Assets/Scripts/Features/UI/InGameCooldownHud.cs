@@ -6,7 +6,7 @@ namespace MushroomSurvival
     public sealed class InGameCooldownHud : MonoBehaviour
     {
         private NetworkManager network;
-        private LobbyNetworkState lobby;
+        private SessionNetworkState sessionState;
         private GameObject canvas;
         private SkillCaster caster;
         private NetworkObject boundPlayer;
@@ -17,10 +17,10 @@ namespace MushroomSurvival
         public CooldownSlot SkillSlot { get; private set; }
         public CooldownSlot ItemSlot { get; private set; }
 
-        public void Configure(NetworkManager manager, LobbyNetworkState state)
+        public void Configure(NetworkManager manager, SessionNetworkState state)
         {
             network = manager;
-            lobby = state;
+            sessionState = state;
             canvas = CooldownHudLayout.Create(transform, RequestSkill, RequestItem, out var skill, out var item, out itemView);
             SkillSlot = skill;
             ItemSlot = item;
@@ -30,7 +30,7 @@ namespace MushroomSurvival
         private void Update()
         {
             var player = network.LocalClient?.PlayerObject;
-            if (lobby.Status != SessionStatus.Playing || player == null || !player.IsSpawned)
+            if (sessionState.Status != SessionStatus.Playing || player == null || !player.IsSpawned)
             {
                 if (canvas.activeSelf)
                 {

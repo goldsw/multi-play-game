@@ -24,7 +24,7 @@ namespace MushroomSurvival
         public event Action StartRequested;
 
         private SessionData state;
-        private LobbyNetworkState networkState;
+        private SessionNetworkState networkState;
         private Text roomLabel;
         private Font koreanFont;
         private SkillCaster localCaster;
@@ -71,7 +71,7 @@ namespace MushroomSurvival
                 Render();
         }
 
-        public void ConfigureCharacterSelection(LobbyNetworkState lobby)
+        public void ConfigureCharacterSelection(SessionNetworkState lobby)
         {
             networkState = lobby;
             if (roomLabel != null && state != null)

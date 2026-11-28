@@ -32,14 +32,14 @@ namespace MushroomSurvival
         private readonly PlayerState[] active = new PlayerState[MaxPlayers];
         private readonly Collider[] staticHits = new Collider[32];
         [SerializeField] private NetworkManager networkManager;
-        [SerializeField] private LobbyNetworkState lobbyState;
+        [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("lobbyState")] private SessionNetworkState sessionState;
         private int activeCount;
         private uint sequence;
 
-        public void Configure(NetworkManager manager, LobbyNetworkState state)
+        public void Configure(NetworkManager manager, SessionNetworkState state)
         {
             networkManager = manager;
-            lobbyState = state;
+            sessionState = state;
             System.Array.Clear(tracked, 0, tracked.Length);
             System.Array.Clear(active, 0, active.Length);
             activeCount = 0;
@@ -47,8 +47,8 @@ namespace MushroomSurvival
 
         private void FixedUpdate()
         {
-            if (networkManager == null || !networkManager.IsHost || lobbyState == null
-                || lobbyState.Status != SessionStatus.Playing)
+            if (networkManager == null || !networkManager.IsHost || sessionState == null
+                || sessionState.Status != SessionStatus.Playing)
             {
                 System.Array.Clear(tracked, 0, tracked.Length);
                 System.Array.Clear(active, 0, active.Length);

@@ -10,7 +10,7 @@ namespace MushroomSurvival
     public sealed class SessionManager : MonoBehaviour
     {
         private NetworkManager networkManager;
-        private LobbyNetworkState networkState;
+        private SessionNetworkState networkState;
         private NetworkPlayerSpawner playerSpawner;
         private InGameSceneLoader sceneLoader;
         private ResultSceneLoader resultLoader;
@@ -30,7 +30,7 @@ namespace MushroomSurvival
 
         public void Initialize(
             NetworkManager network,
-            LobbyNetworkState state,
+            SessionNetworkState state,
             InGameSceneLoader loader,
             ResultSceneLoader resultSceneLoader,
             MatchResultStore resultStore,

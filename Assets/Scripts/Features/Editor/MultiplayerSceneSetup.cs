@@ -63,7 +63,7 @@ namespace MushroomSurvival.Editor
                 LobbyCanvasSetup.Configure(loadedScene);
                 InGameSceneSetup.Configure(loadedScene, cachedPrefab.GetComponent<NetworkObject>());
                 var existingState = loadedScene.GetRootGameObjects()
-                    .SelectMany(root => root.GetComponentsInChildren<LobbyNetworkState>()).Single();
+                    .SelectMany(root => root.GetComponentsInChildren<SessionNetworkState>()).Single();
                 if (!existingState.TryGetComponent<MatchResultStore>(out _))
                     existingState.gameObject.AddComponent<MatchResultStore>();
                 ResultSceneSetup.Configure();
@@ -134,9 +134,9 @@ namespace MushroomSurvival.Editor
             network.NetworkConfig.Prefabs.NetworkPrefabsLists.Clear();
             network.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabs);
 
-            var stateObject = new GameObject("LobbyNetworkState");
+            var stateObject = new GameObject("SessionNetworkState");
             stateObject.AddComponent<NetworkObject>();
-            var state = stateObject.AddComponent<LobbyNetworkState>();
+            var state = stateObject.AddComponent<SessionNetworkState>();
             stateObject.AddComponent<MatchResultStore>();
 
             var roots = new GameObject("LobbyComposition");

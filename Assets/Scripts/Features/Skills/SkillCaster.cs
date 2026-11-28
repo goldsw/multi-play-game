@@ -19,7 +19,7 @@ namespace MushroomSurvival
             0d, NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
         private EffectObjectManager objects;
-        private LobbyNetworkState lobby;
+        private SessionNetworkState sessionState;
         private EffectManager effects;
         private Collider playerCollider;
         private RigidbodyMovement movement;
@@ -62,10 +62,10 @@ namespace MushroomSurvival
             taggerSkill = sharedTaggerSkill;
         }
 
-        public void Initialize(EffectObjectManager manager, LobbyNetworkState state, int skillIndex)
+        public void Initialize(EffectObjectManager manager, SessionNetworkState state, int skillIndex)
         {
             objects = manager;
-            lobby = state;
+            sessionState = state;
             initialSkillIndex = skillIndex;
         }
 
@@ -166,7 +166,7 @@ namespace MushroomSurvival
         private void CastRpc(Vector2 facing)
         {
             var skill = Skill;
-            if (skill == null || lobby == null || lobby.Status != SessionStatus.Playing ||
+            if (skill == null || sessionState == null || sessionState.Status != SessionStatus.Playing ||
                 (character != null && !character.AllowsPlayerActions))
                 return;
             if (!float.IsFinite(facing.sqrMagnitude) || facing.sqrMagnitude < 0.01f)
