@@ -279,6 +279,12 @@ namespace MushroomSurvival.Editor
                 registry = ScriptableObject.CreateInstance<NetworkPrefabsList>();
                 AssetDatabase.CreateAsset(registry, path);
             }
+            // Item boxes are placed in the InGame scene now; drop the removed pooled box and spawner entries.
+            foreach (var entry in registry.PrefabList.ToArray())
+            {
+                if (entry.Prefab == null || entry.Prefab.GetComponent<ItemBox>() != null)
+                    registry.Remove(entry);
+            }
             foreach (var prefab in prefabs)
             {
                 if (prefab == null)

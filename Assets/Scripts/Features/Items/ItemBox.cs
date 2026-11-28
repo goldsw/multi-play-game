@@ -1,252 +1,172 @@
-using System;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace MushroomSurvival
 {
-    [RequireComponent(typeof(NetworkObject), typeof(OwnerNetworkTransform), typeof(ItemBoxPhysics))]
+    /// <summary>
+    /// Item box placed in the InGame scene. The host owns the timer, the gacha result and the grant; every peer only
+    /// presents the replicated state. Late joiners read the same NetworkVariables, so no RPC is needed.
+    /// </summary>
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(NetworkObject), typeof(BoxCollider))]
     public sealed class ItemBox : NetworkBehaviour
     {
-        private const float DropHeight = 1.5f;
-        private const double DropDuration = 0.45;
-        private const float RecycleDepth = 2.5f;
+        private const string OpenParameter = "Open";
+        private const string OpenStateName = "Open";
 
-        private struct BoxState : INetworkSerializable, IEquatable<BoxState>
-        {
-            public bool Active;
-            public bool Landed;
-            public Vector3 Floor;
-            public double LandsAt;
-            public ulong PushOwner;
-            public uint PushVersion;
-            public Vector3 PushOrigin;
-            public Vector3 PushDirection;
+        [SerializeField] private ItemCatalog catalog;
+        [SerializeField] private Animator animator;
+        [SerializeField] private Transform panelAnchor;
+        [SerializeField, Min(0.1f)] private float closedSeconds = 10f;
+        [SerializeField, Min(0f)] private float openAnimationSeconds = 0.8f;
+        [SerializeField, Min(0f)] private float rollSeconds = 3f;
 
-            public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-            {
-                serializer.SerializeValue(ref Active);
-                serializer.SerializeValue(ref Landed);
-                serializer.SerializeValue(ref Floor);
-                serializer.SerializeValue(ref LandsAt);
-                serializer.SerializeValue(ref PushOwner);
-                serializer.SerializeValue(ref PushVersion);
-                serializer.SerializeValue(ref PushOrigin);
-                serializer.SerializeValue(ref PushDirection);
-            }
+        // Declared result → openAt → state: a client reading state changes already holds the matching result.
+        private readonly NetworkVariable<ItemKind> result = new(ItemKind.None);
+        private readonly NetworkVariable<double> openAt = new(0d);
+        private readonly NetworkVariable<ItemBoxState> state = new(ItemBoxState.Closed);
+        private BoxCollider contact;
+        private IItemGachaPanel panel;
+        private SessionNetworkState session;
+        private bool gachaStarted;
 
-            public bool Equals(BoxState other) => Active == other.Active && Landed == other.Landed &&
-                Floor.Equals(other.Floor) && LandsAt == other.LandsAt && PushOwner == other.PushOwner &&
-                PushVersion == other.PushVersion && PushOrigin.Equals(other.PushOrigin) &&
-                PushDirection.Equals(other.PushDirection);
-        }
-
-        private readonly NetworkVariable<BoxState> state = new();
-        private readonly HashSet<ulong> touchingPlayers = new();
-        private ItemBoxPhysics physics;
-        private OwnerNetworkTransform sync;
-        private Renderer[] visuals;
-        private ItemBoxSpawner spawner;
-        private uint pushVersion;
-        private uint appliedPush;
-
-        internal bool IsActive => state.Value.Active;
-        internal Vector3 Floor => state.Value.Floor;
-        internal Vector3 OccupiedPosition => state.Value.Landed ? physics.Position : Floor;
+        public ItemBoxState State => state.Value;
+        public ItemKind Result => result.Value;
+        public double OpenAt => openAt.Value;
+        internal bool PanelFinished { get; private set; }
 
         private void Awake()
         {
-            physics = GetComponent<ItemBoxPhysics>();
-            sync = GetComponent<OwnerNetworkTransform>();
-            visuals = GetComponentsInChildren<Renderer>(true);
-            SetVisible(false);
+            contact = GetComponent<BoxCollider>();
+            contact.isTrigger = true;
+            if (panelAnchor != null)
+                panel = panelAnchor.GetComponentInChildren<IItemGachaPanel>(true);
         }
 
         public override void OnNetworkSpawn()
         {
+            session = FindFirstObjectByType<SessionNetworkState>();
             state.OnValueChanged += OnStateChanged;
-            ApplyState();
+            if (panel != null)
+                panel.Finished += OnGachaFinished; // BoxEndHandler
+            ApplyState(state.Value, joinedMidway: true);
         }
-
-        public override void OnLostOwnership() => physics.SetSimulation(false);
 
         public override void OnNetworkDespawn()
         {
             state.OnValueChanged -= OnStateChanged;
-            physics.SetSimulation(false);
-            physics.SetLanded(false, NetworkManager);
-            SetVisible(false);
-            touchingPlayers.Clear();
+            if (panel != null)
+                panel.Finished -= OnGachaFinished;
         }
 
-        internal void Activate(ItemBoxSpawner owner, Vector3 floor)
+        /// <summary>Animation event of the open clip. The animator lives on this object, so the event lands here.</summary>
+        public void OnOpenAnimationEvent() => StartGacha();
+
+        private void OnGachaFinished(ItemKind picked) => PanelFinished = true;
+
+        private void StartGacha()
         {
-            if (!IsServer || !IsSpawned || IsActive)
+            if (gachaStarted || state.Value == ItemBoxState.Closed)
                 return;
 
-            spawner = owner;
-            var origin = floor + Vector3.up * DropHeight;
-            physics.SetPosition(origin);
-            sync.Teleport(origin, Quaternion.identity, transform.localScale);
-            state.Value = new BoxState
+            gachaStarted = true;
+            if (panelAnchor != null)
+                panelAnchor.gameObject.SetActive(true);
+            panel?.LetGacha(result.Value);
+        }
+
+        private void OnStateChanged(ItemBoxState previous, ItemBoxState current) =>
+            ApplyState(current, joinedMidway: false);
+
+        private void ApplyState(ItemBoxState current, bool joinedMidway)
+        {
+            bool open = current != ItemBoxState.Closed;
+            if (animator != null)
             {
-                Active = true,
-                Floor = floor,
-                LandsAt = NetworkManager.ServerTime.Time + DropDuration
-            };
-        }
+                animator.SetBool(OpenParameter, open);
+                // A peer that spawned while the box was already open skips straight to the open pose.
+                if (joinedMidway && current is ItemBoxState.Rolling or ItemBoxState.Ready)
+                    animator.Play(OpenStateName, 0, 1f);
+            }
 
-        internal void Deactivate()
-        {
-            if (!IsServer || !IsSpawned || !IsActive)
-                return;
-
-            state.Value = default;
-            touchingPlayers.Clear();
-            if (!IsOwnedByServer)
-                NetworkObject.RemoveOwnership();
-        }
-
-        private void OnStateChanged(BoxState previous, BoxState current) => ApplyState();
-
-        private void ApplyState()
-        {
-            BoxState current = state.Value;
-            physics.SetLanded(current.Landed, NetworkManager);
-            if (!current.Landed)
-                physics.SetSimulation(false);
-            SetVisible(current.Active);
-        }
-
-        private void FixedUpdate()
-        {
-            if (!IsSpawned)
-                return;
-
-            BoxState current = state.Value;
-            physics.SetSimulation(current.Landed && IsOwner);
-            if (!current.Active)
-                return;
-
-            if (!current.Landed)
+            if (!open)
             {
-                if (IsServer)
-                    UpdateDrop(current);
+                gachaStarted = false;
+                PanelFinished = false;
+                if (panelAnchor != null)
+                    panelAnchor.gameObject.SetActive(false);
+            }
+            else if (joinedMidway && current is ItemBoxState.Rolling or ItemBoxState.Ready)
+            {
+                StartGacha();
+            }
+        }
+
+        private void Update()
+        {
+            if (!IsServer || !IsSpawned || catalog == null)
+                return;
+
+            bool playing = session != null && session.Status == SessionStatus.Playing;
+            if (!playing)
+                return;
+
+            double now = NetworkManager.ServerTime.Time;
+            switch (state.Value)
+            {
+                case ItemBoxState.Closed:
+                    if (openAt.Value <= 0d)
+                        openAt.Value = now + closedSeconds;
+                    else if (now >= openAt.Value)
+                        Open();
+                    break;
+                case ItemBoxState.Opening:
+                    if (now >= openAt.Value + openAnimationSeconds)
+                        state.Value = ItemBoxState.Rolling;
+                    break;
+                case ItemBoxState.Rolling:
+                    if (now >= openAt.Value + openAnimationSeconds + rollSeconds)
+                        state.Value = ItemBoxState.Ready;
+                    break;
+                case ItemBoxState.Ready:
+                    TryGrantToTouchingPlayer(now);
+                    break;
+            }
+        }
+
+        private void Open()
+        {
+            var picked = catalog.Roll(Random.value);
+            if (picked == ItemKind.None)
+            {
+                openAt.Value = NetworkManager.ServerTime.Time + closedSeconds;
                 return;
             }
 
-            // Occupancy and ownership travel independently. Apply the impulse only when both agree.
-            if (IsOwner && current.PushOwner == OwnerClientId && current.PushVersion != 0 &&
-                current.PushVersion != appliedPush)
-            {
-                appliedPush = current.PushVersion;
-                if (!IsServer)
-                    physics.SetPosition(current.PushOrigin);
-                physics.Push(current.PushDirection);
-            }
-
-            if (!IsServer)
-                return;
-
-            if (physics.Position.y < Floor.y - RecycleDepth)
-            {
-                Deactivate();
-                return;
-            }
-            if (spawner.IsMatchPlaying)
-                ResolvePlayerContacts();
+            result.Value = picked;
+            state.Value = ItemBoxState.Opening;
         }
 
-        private void UpdateDrop(BoxState current)
+        // Host only: collider contact happens on every peer, but only the host decides who gets the item.
+        private void TryGrantToTouchingPlayer(double now)
         {
-            double remaining = current.LandsAt - NetworkManager.ServerTime.Time;
-            if (remaining > 0d)
-            {
-                float height = Mathf.Clamp01((float)(remaining / DropDuration)) * DropHeight;
-                physics.MovePosition(current.Floor + Vector3.up * height);
-                return;
-            }
-            if (spawner == null || !spawner.CanLandAt(current.Floor))
-            {
-                Deactivate();
-                return;
-            }
-
-            physics.SetPosition(current.Floor);
-            current.Landed = true;
-            state.Value = current;
-        }
-
-        private void ResolvePlayerContacts()
-        {
-            var pickup = physics.Bounds;
-            NetworkObject pusher = null;
-            Collider pusherCollider = null;
+            var pickup = contact.bounds;
             foreach (var client in NetworkManager.ConnectedClientsList)
             {
                 var player = client.PlayerObject;
                 if (player == null || player.gameObject.scene != gameObject.scene ||
                     !player.TryGetComponent<Collider>(out var body) || !pickup.Intersects(body.bounds) ||
-                    !player.TryGetComponent<CharacterStateMachine>(out var character) || character.IsEliminated ||
                     !player.TryGetComponent<PlayerItemInventory>(out var inventory))
-                {
-                    touchingPlayers.Remove(client.ClientId);
                     continue;
-                }
 
-                if (inventory.Held == ItemKind.None)
-                {
-                    if (!inventory.TryGrant(RollItem()))
-                        continue;
-                    Deactivate();
-                    return;
-                }
+                if (!inventory.TryGrant(result.Value))
+                    continue; // already holding an item (or eliminated): the box stays open
 
-                if (pusher == null && touchingPlayers.Add(client.ClientId))
-                {
-                    pusher = player;
-                    pusherCollider = body;
-                }
+                result.Value = ItemKind.None;
+                openAt.Value = now + closedSeconds;
+                state.Value = ItemBoxState.Closed;
+                return;
             }
-            if (pusher != null)
-                TransferPush(pusher, pusherCollider);
-        }
-
-        private void TransferPush(NetworkObject player, Collider playerCollider)
-        {
-            var direction = physics.Position - playerCollider.bounds.center;
-            direction.y = 0f;
-            if (direction.sqrMagnitude < 0.001f && player.TryGetComponent<RigidbodyMovement>(out var movement))
-            {
-                var facing = movement.Facing;
-                direction = new Vector3(facing.x, 0f, facing.y);
-            }
-
-            var owner = player.OwnerClientId;
-            var current = state.Value;
-            current.PushOwner = owner;
-            current.PushVersion = ++pushVersion;
-            current.PushOrigin = physics.Position;
-            current.PushDirection = direction.normalized;
-            if (OwnerClientId != owner)
-                NetworkObject.ChangeOwnership(owner);
-            state.Value = current;
-        }
-
-        private static ItemKind RollItem()
-        {
-            return UnityEngine.Random.Range(0, 3) switch
-            {
-                0 => ItemKind.Water,
-                1 => ItemKind.Apple,
-                _ => ItemKind.Banana
-            };
-        }
-
-        private void SetVisible(bool visible)
-        {
-            foreach (Renderer visual in visuals)
-                visual.enabled = visible;
         }
     }
 }
