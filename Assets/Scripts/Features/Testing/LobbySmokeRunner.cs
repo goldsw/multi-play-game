@@ -134,6 +134,12 @@ namespace MushroomSurvival
                     quitAt = Time.realtimeSinceStartup + 30f;
                     _ = VerifyResultAsync();
                 }
+                if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-placed-box") >= 0)
+                {
+                    gameObject.AddComponent<PlacedBoxSmokeProbe>().Initialize(network);
+                    verifyingReturn = true; // the probe quits with 0 itself; reaching quitAt means it never finished
+                    quitAt = Time.realtimeSinceStartup + 60f;
+                }
                 if (Array.IndexOf(Environment.GetCommandLineArgs(), "--smoke-ingame-return") >= 0)
                 {
                     verifyingReturn = true;

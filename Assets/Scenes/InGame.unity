@@ -119,6 +119,84 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &42182879
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1580012096}
+    m_Modifications:
+    - target: {fileID: 3627204884782311426, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_Name
+      value: ItemBox 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2908908128
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3402241407
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+--- !u!4 &42182880 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+  m_PrefabInstance: {fileID: 42182879}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &404898376
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,7 +335,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28d19ec6bda148208c44d899a82c63ec, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.LocalPlayerCameraFollow
   followDistance: 18.868
   smoothTime: 0.08
@@ -273,7 +351,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5c6acb58f0505714c8b1bfcc8e41c755, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SpectatorMode
 --- !u!114 &430488168
 MonoBehaviour:
@@ -285,7 +363,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b676cc2a9d553544984bb238564b892, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SpectatorScreen
 --- !u!114 &430488169
 MonoBehaviour:
@@ -297,7 +375,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d706ef4a8494e6a43a86ec0c4b10b2db, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.WinnerFocus
   focusDistance: 8
   bannerText: "\uC6B0\uC2B9!"
@@ -311,7 +389,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 594380c28989d1f4ea9b5a2837ff4800, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.WinnerBanner
   popSeconds: 0.45
 --- !u!1 &586789724
@@ -328,7 +406,6 @@ GameObject:
   - component: {fileID: 586789728}
   - component: {fileID: 586789729}
   - component: {fileID: 586789732}
-  - component: {fileID: 586789731}
   - component: {fileID: 586789730}
   m_Layer: 0
   m_Name: InGameComposition
@@ -347,7 +424,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 22296e55a26402043897cd0f8a107ba6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.PlayerCollisionManager
   networkManager: {fileID: 0}
   sessionState: {fileID: 0}
@@ -361,7 +438,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62fcbc31c5af2c743945c0c6b70650a7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.NetworkPlayerSpawner
   playerPrefab: {fileID: 2765455211588527589, guid: df8a20f71bd2ced43af649a3d945a8b0, type: 3}
   spawnPoints:
@@ -398,7 +475,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8412074220e74f23b80a6d9a069aa203, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.EffectObjectManager
   floor: {fileID: 1772083057}
 --- !u!114 &586789729
@@ -411,7 +488,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca8427a2dc904fbfa5399d2d8320cb07, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.MatchPlayerStateManager
 --- !u!114 &586789730
 MonoBehaviour:
@@ -423,7 +500,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10aeee9294578064e8e9b9510158b20c, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemWorld
   map: {fileID: 586789732}
   bucket: {fileID: 7369732091944724038, guid: 399086475b2b60b44aaee29de85bb5f6, type: 3}
@@ -433,20 +510,6 @@ MonoBehaviour:
   stun: {fileID: 11400000, guid: 067fefc1fffcf97438a857b0de826fc6, type: 2}
   slow: {fileID: 11400000, guid: fff42bf6e36aa2b4bbf1bac6a775c024, type: 2}
   slip: {fileID: 11400000, guid: 229bfef5e93d3b444a65eda481617a70, type: 2}
---- !u!114 &586789731
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 586789724}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1d934c8750a1cc419f71f8055b22166, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.MatchItems
-  boxSpawnerPrefab: {fileID: 7077879923738168218, guid: 2aef25b63121c024a867e4af26a2293a, type: 3}
-  map: {fileID: 586789732}
 --- !u!114 &586789732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -457,7 +520,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc32fbfdce0241bfb732e330bfa8db1e, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemMap
   prototypeGround: {fileID: 1772083057}
   tileSize: 1
@@ -743,9 +806,278 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
   kind: 2
+--- !u!1001 &1186185579
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1580012096}
+    m_Modifications:
+    - target: {fileID: 3627204884782311426, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_Name
+      value: ItemBox 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 445275124
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3402241407
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -5.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+--- !u!4 &1186185580 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+  m_PrefabInstance: {fileID: 1186185579}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1251071219
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1580012096}
+    m_Modifications:
+    - target: {fileID: 3627204884782311426, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_Name
+      value: ItemBox 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1619658861
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3402241407
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 5.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+--- !u!4 &1251071220 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+  m_PrefabInstance: {fileID: 1251071219}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1524863601
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1580012096}
+    m_Modifications:
+    - target: {fileID: 3627204884782311426, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_Name
+      value: ItemBox 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3998527211
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351725644607705628, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3402241407
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+--- !u!4 &1524863602 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8837443810879332827, guid: dbb0ec74bc3e2e441876c68d52a9d0db, type: 3}
+  m_PrefabInstance: {fileID: 1524863601}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1580012095
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1580012096}
+  m_Layer: 0
+  m_Name: ItemBoxes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1580012096
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1580012095}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1186185580}
+  - {fileID: 1251071220}
+  - {fileID: 1524863602}
+  - {fileID: 42182880}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1622186274
 GameObject:
   m_ObjectHideFlags: 0
@@ -869,7 +1201,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
   kind: 2
 --- !u!1 &1772083055
@@ -995,7 +1327,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
   kind: 0
 --- !u!1 &1875850597
@@ -1152,7 +1484,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
   kind: 2
 --- !u!1 &2008327411
@@ -1278,7 +1610,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42991ebb4361475183c65bdd16574aa2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.ItemSurface
   kind: 2
 --- !u!1660057539 &9223372036854775807
@@ -1293,3 +1625,4 @@ SceneRoots:
   - {fileID: 586789727}
   - {fileID: 430488165}
   - {fileID: 787083880}
+  - {fileID: 1580012096}

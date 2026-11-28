@@ -209,7 +209,6 @@ namespace MushroomSurvival
                 return;
             if (playerSpawner != null && playerSpawner.AllPlayersReady(networkManager, matchParticipants))
             {
-                playerSpawner.GetComponent<MatchItems>()?.Begin(networkState);
                 matchResults.Clear();
                 networkState.PublishWinner(default);
                 pendingResults = null;

@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace MushroomSurvival
 {
-    internal static class ItemIcon
+    public static class ItemIcon
     {
         private const int Size = 48;
 
-        public static Sprite Create(ItemKind kind)
+        public static Sprite Create(ItemKind kind, bool readable = false)
         {
             var texture = new Texture2D(Size, Size, TextureFormat.RGBA32, false) { name = kind + " Icon" };
             var pixels = new Color32[Size * Size];
@@ -14,7 +14,7 @@ namespace MushroomSurvival
             for (int x = 0; x < Size; x++)
                 pixels[y * Size + x] = ColorAt(kind, new Vector2((x + 0.5f) / Size, (y + 0.5f) / Size));
             texture.SetPixels32(pixels);
-            texture.Apply(false, true);
+            texture.Apply(false, !readable);
             return Sprite.Create(texture, new Rect(0f, 0f, Size, Size), Vector2.one * 0.5f);
         }
 
