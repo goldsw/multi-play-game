@@ -67,14 +67,16 @@ namespace MushroomSurvival
             var text = new GameObject("Winner", typeof(RectTransform), typeof(Text), typeof(Outline));
             labelRect = text.GetComponent<RectTransform>();
             labelRect.SetParent(overlay.transform, false);
-            labelRect.anchorMin = labelRect.anchorMax = labelRect.pivot = new Vector2(0.5f, 0.5f);
-            labelRect.anchoredPosition = Vector2.zero;
-            labelRect.sizeDelta = new Vector2(900f, 240f);
+            // Anchored to the bottom so the winner (screen center) stays visible and it clears the corner HUD at any resolution.
+            labelRect.anchorMin = labelRect.anchorMax = new Vector2(0.5f, 0f);
+            labelRect.pivot = new Vector2(0.5f, 0.5f);
+            labelRect.anchoredPosition = new Vector2(0f, 150f);
+            labelRect.sizeDelta = new Vector2(900f, 170f);
             koreanFont = Font.CreateDynamicFontFromOSFont(
-                new[] { "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR" }, 160);
+                new[] { "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR" }, 120);
             label = text.GetComponent<Text>();
             label.font = koreanFont != null ? koreanFont : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 160;
+            label.fontSize = 120;
             label.fontStyle = FontStyle.Bold;
             label.alignment = TextAnchor.MiddleCenter;
             label.horizontalOverflow = HorizontalWrapMode.Overflow;
