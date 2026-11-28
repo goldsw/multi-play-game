@@ -9,6 +9,7 @@ namespace MushroomSurvival
     {
         [SerializeField] private ResultPodium podium;
         [SerializeField] private VictoryPoseCatalog catalog;
+        // TODO: 임시 CharacterDefinition(테스트용) -> 팀원의 정식 캐릭터 정의로 교체할 지점
         [SerializeField] private CharacterDefinition[] characters;
         [SerializeField] private GameObject placeholderModel;
 

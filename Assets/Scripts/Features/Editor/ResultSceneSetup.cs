@@ -119,6 +119,7 @@ namespace MushroomSurvival.Editor
             return asset;
         }
 
+        // TODO: 임시 CharacterDefinition(테스트용) 에셋 생성 -> 정식 캐릭터 정의가 들어오면 교체/삭제
         private static CharacterDefinition LoadOrCreateDefinition(RunnerCharacter character)
         {
             string path = $"{DataFolder}/Character_{character}.asset";
