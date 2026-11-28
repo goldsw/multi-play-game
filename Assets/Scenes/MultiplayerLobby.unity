@@ -646,7 +646,7 @@ GameObject:
   - component: {fileID: 223195204}
   - component: {fileID: 223195207}
   m_Layer: 0
-  m_Name: LobbyNetworkState
+  m_Name: SessionNetworkState
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -663,7 +663,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 356aa95a8b13b094f8d0de4f3afa668e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.LobbyNetworkState
+  m_EditorClassIdentifier: Assembly-CSharp::MushroomSurvival.SessionNetworkState
   ShowTopMostFoldoutHeaderGroup: 1
 --- !u!114 &223195205
 MonoBehaviour:

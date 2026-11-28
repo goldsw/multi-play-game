@@ -24,7 +24,7 @@ namespace MushroomSurvival
         public event Action StartRequested;
 
         private SessionData state;
-        private LobbyNetworkState networkState;
+        private SessionNetworkState networkState;
         private Text roomLabel;
         private Font koreanFont;
         private SkillCaster localCaster;
@@ -71,7 +71,7 @@ namespace MushroomSurvival
                 Render();
         }
 
-        public void ConfigureCharacterSelection(LobbyNetworkState lobby)
+        public void ConfigureCharacterSelection(SessionNetworkState lobby)
         {
             networkState = lobby;
             if (roomLabel != null && state != null)
@@ -81,6 +81,9 @@ namespace MushroomSurvival
         public void Show(SessionData sessionState)
         {
             state = sessionState;
+            // The result scene has its own presentation; the lobby UI returns with the Lobby state.
+            if (canvas != null)
+                canvas.enabled = state.Status != SessionStatus.Result;
             if (state.Status == SessionStatus.Lobby)
                 lastLobbyWasHost = state.LocalIsHost;
             if (state.Status != SessionStatus.Playing)

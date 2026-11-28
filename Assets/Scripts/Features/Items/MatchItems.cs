@@ -16,14 +16,14 @@ namespace MushroomSurvival
             boxSpawnerPrefab = prefab;
         }
 
-        internal void Begin(LobbyNetworkState lobby)
+        internal void Begin(SessionNetworkState sessionState)
         {
-            if (!lobby.IsServer || spawned != null || boxSpawnerPrefab == null || map == null)
+            if (!sessionState.IsServer || spawned != null || boxSpawnerPrefab == null || map == null)
                 return;
 
             spawned = Instantiate(boxSpawnerPrefab);
             SceneManager.MoveGameObjectToScene(spawned.gameObject, gameObject.scene);
-            spawned.Initialize(map, lobby);
+            spawned.Initialize(map, sessionState);
             spawned.NetworkObject.Spawn(destroyWithScene: true);
         }
     }

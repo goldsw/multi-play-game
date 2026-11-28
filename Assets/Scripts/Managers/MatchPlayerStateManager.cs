@@ -12,19 +12,19 @@ namespace MushroomSurvival
         private readonly List<NetworkObject> participants = new();
         private readonly HashSet<ulong> contacts = new();
         private NetworkManager network;
-        private LobbyNetworkState lobby;
+        private SessionNetworkState sessionState;
         private bool matchEnded;
 
         // Host only. Raised once with the final ranking when the match is ended.
         public event Action<IReadOnlyList<MatchResultEntry>> MatchEnded;
 
-        public void Begin(NetworkManager manager, IReadOnlyList<ulong> playerIds, LobbyNetworkState lobbyState = null)
+        public void Begin(NetworkManager manager, IReadOnlyList<ulong> playerIds, SessionNetworkState state = null)
         {
             if (!manager.IsServer)
                 return;
 
             network = manager;
-            lobby = lobbyState;
+            sessionState = state;
             matchEnded = false;
             participants.Clear();
             foreach (ulong clientId in playerIds)
@@ -114,7 +114,7 @@ namespace MushroomSurvival
                 Eliminate(loser);
 
             var results = new List<MatchResultEntry>();
-            var lobbySlots = lobby != null && lobby.IsSpawned ? lobby.GetSlots() : Array.Empty<LobbySlotData>();
+            var lobbySlots = sessionState != null && sessionState.IsSpawned ? sessionState.GetSlots() : Array.Empty<LobbySlotData>();
             foreach (var participant in participants)
             {
                 if (participant == null || !participant.TryGetComponent<CharacterStateMachine>(out var state))

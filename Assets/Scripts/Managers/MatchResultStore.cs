@@ -4,7 +4,7 @@ using Unity.Netcode;
 
 namespace MushroomSurvival
 {
-    // Lives on the LobbyNetworkState object in the persistent lobby scene, so the host-confirmed
+    // Lives on the SessionNetworkState object in the persistent lobby scene, so the host-confirmed
     // result survives the InGame -> Result scene change on every peer.
     public sealed class MatchResultStore : NetworkBehaviour
     {
